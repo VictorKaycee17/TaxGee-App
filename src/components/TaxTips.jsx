@@ -49,11 +49,11 @@ const TaxTips = () => {
 
     return (
         <div
-            className="w-full max-w-2xl mx-auto mb-8 animate-fade-in"
+            className="w-full max-w-md mx-auto mb-6 animate-fade-in"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-6 relative overflow-hidden transition-all duration-300 hover:shadow-md">
+            <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4 relative overflow-hidden transition-all duration-300 hover:shadow-md">
 
                 {/* Decorative background element */}
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl"></div>
