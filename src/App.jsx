@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import TaxTips from './components/TaxTips';
 import TaxCalculator from './components/TaxCalculator';
 import VatCalculator from './components/VatCalculator';
+import CapitalGainsCalculator from './components/CapitalGainsCalculator';
 import PadiChat from './components/PadiChat';
 import Footer from './components/Footer';
 
@@ -28,8 +29,8 @@ function App() {
                         <button
                             onClick={() => setActiveTab('tax')}
                             className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${activeTab === 'tax'
-                                    ? 'bg-primary text-white shadow-md'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-primary text-white shadow-md'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             Income Tax
@@ -37,22 +38,29 @@ function App() {
                         <button
                             onClick={() => setActiveTab('vat')}
                             className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${activeTab === 'vat'
-                                    ? 'bg-purple-600 text-white shadow-md'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-purple-600 text-white shadow-md'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             VAT Calculator
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('cgt')}
+                            className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${activeTab === 'cgt'
+                                ? 'bg-emerald-600 text-white shadow-md'
+                                : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                        >
+                            Capital Gains
                         </button>
                     </div>
                 </div>
 
                 {/* Main Calculator Area */}
                 <main>
-                    {activeTab === 'tax' ? (
-                        <TaxCalculator />
-                    ) : (
-                        <VatCalculator />
-                    )}
+                    {activeTab === 'tax' && <TaxCalculator />}
+                    {activeTab === 'vat' && <VatCalculator />}
+                    {activeTab === 'cgt' && <CapitalGainsCalculator />}
                 </main>
 
                 <Footer />
