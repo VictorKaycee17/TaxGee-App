@@ -5,7 +5,7 @@
  */
 
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 /**
  * Generate Tax Assessment PDF
@@ -165,7 +165,7 @@ export function generateTaxPDF(userData = {}, taxData) {
     }
 
     // Generate table
-    doc.autoTable({
+    autoTable(doc, {
         startY: yPosition,
         head: [['Description', 'Amount']],
         body: tableData,
@@ -208,7 +208,7 @@ export function generateTaxPDF(userData = {}, taxData) {
             `₦${band.tax.toLocaleString('en-NG', { minimumFractionDigits: 2 })}`
         ]);
 
-        doc.autoTable({
+        autoTable(doc, {
             startY: yPosition,
             head: [['Income Range', 'Rate', 'Taxable Amount', 'Tax']],
             body: taxBandsData,
