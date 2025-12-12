@@ -49,35 +49,35 @@ const TaxTips = () => {
 
     return (
         <div
-            className="w-full max-w-md mx-auto mb-6 animate-fade-in"
+            className="w-full max-w-sm mx-auto mb-6 animate-fade-in"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4 relative overflow-hidden transition-all duration-300 hover:shadow-md">
+            <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-3 relative overflow-hidden transition-all duration-300 hover:shadow-md">
 
                 {/* Decorative background element */}
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl"></div>
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-16 h-16 bg-primary/5 rounded-full blur-xl"></div>
 
-                <div className="flex items-center justify-between gap-4 relative z-10">
+                <div className="flex items-center justify-between gap-3 relative z-10">
 
                     {/* Prev Button */}
                     <button
                         onClick={handlePrev}
-                        className="p-2 rounded-full hover:bg-white/50 text-gray-500 hover:text-primary transition-colors focus:outline-none"
+                        className="p-1 rounded-full hover:bg-white/50 text-gray-500 hover:text-primary transition-colors focus:outline-none"
                         aria-label="Previous tip"
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
 
                     {/* Tip Content */}
                     <div className="flex-1 text-center transition-opacity duration-300">
-                        <div className="text-3xl mb-2">{currentTip.icon}</div>
-                        <h3 className="font-bold text-gray-800 text-sm uppercase tracking-wide mb-1">
+                        <div className="text-xl mb-1">{currentTip.icon}</div>
+                        <h3 className="font-bold text-gray-800 text-xs uppercase tracking-wide mb-1">
                             {currentTip.title}
                         </h3>
-                        <p className="text-gray-600 font-medium">
+                        <p className="text-gray-600 font-medium text-xs leading-tight">
                             {currentTip.text}
                         </p>
                     </div>
@@ -88,7 +88,7 @@ const TaxTips = () => {
                         className="p-2 rounded-full hover:bg-white/50 text-gray-500 hover:text-primary transition-colors focus:outline-none"
                         aria-label="Next tip"
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
