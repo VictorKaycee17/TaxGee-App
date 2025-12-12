@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import TaxTips from './components/TaxTips';
 import TaxCalculator from './components/TaxCalculator';
+import VatCalculator from './components/VatCalculator';
 import PadiChat from './components/PadiChat';
 import Footer from './components/Footer';
 
 function App() {
     const [isChatOpen, setIsChatOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('tax'); // 'tax' or 'vat'
 
     return (
         <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
-                <header className="text-center mb-12 animate-fade-in">
+                <header className="text-center mb-6 animate-fade-in">
                     <h1 className="text-4xl sm:text-5xl font-bold text-gradient mb-3">
                         TaxPadi
                     </h1>
@@ -20,9 +22,37 @@ function App() {
                 {/* Tax Tips Section */}
                 <TaxTips />
 
-                {/* Main Calculator */}
+                {/* Tool Switcher */}
+                <div className="flex justify-center mb-8">
+                    <div className="bg-white/50 backdrop-blur-sm p-1 rounded-full border border-gray-200 shadow-sm inline-flex">
+                        <button
+                            onClick={() => setActiveTab('tax')}
+                            className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${activeTab === 'tax'
+                                    ? 'bg-primary text-white shadow-md'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                        >
+                            Income Tax
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('vat')}
+                            className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${activeTab === 'vat'
+                                    ? 'bg-purple-600 text-white shadow-md'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                        >
+                            VAT Calculator
+                        </button>
+                    </div>
+                </div>
+
+                {/* Main Calculator Area */}
                 <main>
-                    <TaxCalculator />
+                    {activeTab === 'tax' ? (
+                        <TaxCalculator />
+                    ) : (
+                        <VatCalculator />
+                    )}
                 </main>
 
                 <Footer />
