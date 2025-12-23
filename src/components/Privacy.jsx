@@ -1,8 +1,8 @@
 import React from 'react';
 
-const Privacy = ({ onBack }) => {
+const Privacy = ({ onBack, theme }) => {
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
+        <div className="min-h-screen bg-gray-50 dark:bg-black py-12 px-4 sm:px-6 lg:px-8 animate-fade-in transition-colors duration-300">
             <div className="max-w-3xl mx-auto">
                 <button
                     onClick={onBack}
@@ -24,11 +24,11 @@ const Privacy = ({ onBack }) => {
                     Back to Calculator
                 </button>
 
-                <div className="bg-white shadow-lg rounded-2xl p-8 sm:p-12">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Privacy Policy</h1>
+                <div className="bg-white dark:bg-black shadow-lg rounded-2xl p-8 sm:p-12 border dark:border-primary/20">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Privacy Policy</h1>
                     <p className="text-gray-500 mb-8">Effective Date: January 1, 2026</p>
 
-                    <div className="prose prose-slate max-w-none text-gray-800">
+                    <div className="prose prose-slate max-w-none text-gray-800 dark:text-gray-300">
                         <p className="mb-6">
                             At TaxGee, we believe your financial data belongs to you. This Privacy Policy explains how
                             we handle your information when you use our web application, mobile PWA, and AI assistant.
@@ -37,7 +37,7 @@ const Privacy = ({ onBack }) => {
                             By using TaxGee, you agree to the practices described in this policy.
                         </p>
 
-                        <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">1. The Core Promise: Your Data Stays with You</h2>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">1. The Core Promise: Your Data Stays with You</h2>
                         <ul className="list-disc pl-5 space-y-2 mb-6">
                             <li>
                                 <strong>For our Calculator and Planner features, we do not store your personal financial data on our servers.</strong>

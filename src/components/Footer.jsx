@@ -4,7 +4,7 @@ import React from 'react';
  * Footer Component
  * Displays copyright info and feedback link
  */
-const Footer = ({ onOpenTerms, onOpenPrivacy }) => {
+const Footer = ({ onOpenTerms, onOpenPrivacy, theme, toggleTheme }) => {
     const currentYear = new Date().getFullYear();
     const email = 'hello@taxgee.com';
     const subject = encodeURIComponent('TaxGee Feedback');
@@ -39,6 +39,14 @@ const Footer = ({ onOpenTerms, onOpenPrivacy }) => {
                 >
                     Feedback & Support
                 </a>
+                <span className="text-gray-300">|</span>
+                <button
+                    onClick={toggleTheme}
+                    className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-text dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-medium"
+                    aria-label="Toggle Dark Mode"
+                >
+                    {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
+                </button>
             </div>
 
             <p className="text-[10px] mt-4 text-gray-400">

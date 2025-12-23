@@ -12,8 +12,7 @@
 
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(135deg, #F8F9FA 0%, #E8F5F1 100%);
-    color: #2D3436;
+    @apply bg-background-light text-text dark:bg-black dark:text-white transition-colors duration-300;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -33,31 +32,23 @@
 /* Custom Components */
 @layer components {
   .input-field {
-    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-lg 
-           focus:border-primary focus:outline-none focus:ring-2 
-           focus:ring-primary/20 transition-all duration-200
-           text-base font-medium;
+    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200 text-base font-medium dark:bg-black dark:border-gray-700 dark:text-white dark:focus:border-primary;
   }
 
   .btn-primary {
-    @apply bg-primary hover:bg-primary-dark text-white font-semibold 
-           py-3 px-6 rounded-lg transition-all duration-200 
-           transform hover:scale-105 hover:shadow-lg
-           focus:outline-none focus:ring-2 focus:ring-primary/50;
+    @apply bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/50;
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-lg p-6 
-           border border-gray-100/50 backdrop-blur-sm;
+    @apply bg-white rounded-2xl shadow-lg p-6 border border-gray-100/50 backdrop-blur-sm dark:bg-black dark:border-primary/30 dark:shadow-primary/10;
   }
 
   .label-text {
-    @apply block text-sm font-semibold text-text mb-2;
+    @apply block text-sm font-semibold text-text mb-2 dark:text-gray-300;
   }
 
   .result-row {
-    @apply flex justify-between items-center py-3 
-           border-b border-gray-100 last:border-0;
+    @apply flex justify-between items-center py-3 border-b border-gray-100 last:border-0 dark:border-gray-800;
   }
 
   .currency-input {
@@ -68,11 +59,13 @@
 /* Utility Classes */
 @layer utilities {
   .gradient-primary {
-    background: linear-gradient(135deg, #00B894 0%, #00D2A0 100%);
+    background: linear-gradient(135deg, #078203 0%, #09A604 100%);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #00B894 0%, #008F6E 100%);
+    /* Fallback and Gradient */
+    @apply text-primary;
+    background: linear-gradient(135deg, #078203 0%, #056002 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -87,6 +80,7 @@
       opacity: 0;
       transform: translateY(10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -102,6 +96,7 @@
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);

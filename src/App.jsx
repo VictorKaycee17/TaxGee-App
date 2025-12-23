@@ -12,15 +12,29 @@ import logo from './assets/logo.png';
 
 function App() {
     const [isChatOpen, setIsChatOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState('tax'); // 'tax' or 'vat'
-    const [currentView, setCurrentView] = useState('home'); // 'home' or 'terms'
+    const [activeTab, setActiveTab] = useState('tax');
+    const [currentView, setCurrentView] = useState('home');
+    const [theme, setTheme] = useState('light');
+
+    // Handle Theme Change
+    React.useEffect(() => {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    };
 
     if (currentView === 'terms') {
-        return <Terms onBack={() => setCurrentView('home')} />;
+        return <Terms onBack={() => setCurrentView('home')} theme={theme} />;
     }
 
     if (currentView === 'privacy') {
-        return <Privacy onBack={() => setCurrentView('home')} />;
+        return <Privacy onBack={() => setCurrentView('home')} theme={theme} />;
     }
 
     return (
@@ -82,6 +96,8 @@ function App() {
                 <Footer
                     onOpenTerms={() => setCurrentView('terms')}
                     onOpenPrivacy={() => setCurrentView('privacy')}
+                    theme={theme}
+                    toggleTheme={toggleTheme}
                 />
             </div>
 
