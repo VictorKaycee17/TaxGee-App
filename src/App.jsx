@@ -3,7 +3,7 @@ import TaxTips from './components/TaxTips';
 import TaxCalculator from './components/TaxCalculator';
 import VatCalculator from './components/VatCalculator';
 import CapitalGainsCalculator from './components/CapitalGainsCalculator';
-import PadiChat from './components/PadiChat';
+import GeeChat from './components/GeeChat';
 import Footer from './components/Footer';
 import Terms from './components/Terms';
 import Privacy from './components/Privacy';
@@ -128,7 +128,7 @@ function App() {
             )}
 
             {/* Padi Chat Assistant */}
-            <PadiChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+            <GeeChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
         </div>
     );
 }

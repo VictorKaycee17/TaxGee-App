@@ -187,7 +187,7 @@ The new system is actually more generous for most taxpayers!`
  * Get AI response from Gee
  * Simulates AI by pattern matching against knowledge base
  */
-export function getPadiResponse(userMessage) {
+export function getGeeResponse(userMessage) {
     const messageLower = userMessage.toLowerCase();
 
     // Check greeting

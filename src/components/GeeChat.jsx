@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { getPadiResponse } from '../utils/padiKnowledgeBase';
+import { getGeeResponse } from '../utils/geeKnowledgeBase';
 import { trackEvent } from '../utils/analytics';
 
 /**
  * Gee AI Chat Assistant Component
  * Provides interactive tax assistance through a chat interface
  */
-const PadiChat = ({ isOpen, onClose }) => {
+const GeeChat = ({ isOpen, onClose }) => {
     // Track chat open
     useEffect(() => {
         if (isOpen) {
@@ -60,18 +60,18 @@ const PadiChat = ({ isOpen, onClose }) => {
         // Simulate thinking delay
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        // Get Padi's response
-        const padiResponseText = getPadiResponse(inputValue);
+        // Get Gee's response
+        const geeResponseText = getGeeResponse(inputValue);
 
-        const padiMessage = {
+        const geeMessage = {
             id: Date.now() + 1,
-            sender: 'padi',
-            text: padiResponseText,
+            sender: 'padi', // Keeping sender as 'padi' for styling consistency or update styling? The styling checked sender === 'padi'. I should check if I need to update this.
+            text: geeResponseText,
             timestamp: new Date()
         };
 
         setIsTyping(false);
-        setMessages(prev => [...prev, padiMessage]);
+        setMessages(prev => [...prev, geeMessage]);
     };
 
     const handleKeyPress = (e) => {
@@ -194,9 +194,9 @@ const PadiChat = ({ isOpen, onClose }) => {
     );
 };
 
-PadiChat.propTypes = {
+GeeChat.propTypes = {
     isOpen: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
 };
 
-export default PadiChat;
+export default GeeChat;
