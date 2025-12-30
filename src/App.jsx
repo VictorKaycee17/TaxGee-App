@@ -28,13 +28,34 @@ import Profile from './pages/Profile';
 import logo from './assets/logo.png';
 
 function App() {
+    // State with Persistence
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('tax');
     const [currentView, setCurrentView] = useState('home');
-    const [theme, setTheme] = useState('light');
-    const [isPro, setIsPro] = useState(true);
+    const [theme, setTheme] = useState(() => localStorage.getItem('taxpadi_theme') || 'light');
+
+    // Per user request: Default to Free Version on fresh load, but persist on refresh
+    const [isPro, setIsPro] = useState(() => {
+        const saved = localStorage.getItem('taxpadi_isPro');
+        return saved ? JSON.parse(saved) : false;
+    });
+
     const [isProLoggedIn, setIsProLoggedIn] = useState(false);
-    const [activeProPage, setActiveProPage] = useState('settings');
+
+    const [activeProPage, setActiveProPage] = useState(() => {
+        return localStorage.getItem('taxpadi_activeProPage') || 'dashboard';
+    });
+
+    // Persist State Changes
+    React.useEffect(() => {
+        localStorage.setItem('taxpadi_isPro', JSON.stringify(isPro));
+    }, [isPro]);
+
+    React.useEffect(() => {
+        localStorage.setItem('taxpadi_activeProPage', activeProPage);
+        // Scroll to top on page change
+        window.scrollTo(0, 0);
+    }, [activeProPage]);
 
     // Handle Theme Change
     React.useEffect(() => {
@@ -43,6 +64,7 @@ function App() {
         } else {
             document.documentElement.classList.remove('dark');
         }
+        localStorage.setItem('taxpadi_theme', theme);
     }, [theme]);
 
     const toggleTheme = () => {
@@ -66,7 +88,7 @@ function App() {
                 <div className="animate-fade-in">
                     {/* Full Screen Pro Layout */}
                     <AppLayout activePage={activeProPage} onNavigate={setActiveProPage}>
-                        {activeProPage === 'dashboard' && <Dashboard />}
+                        {activeProPage === 'dashboard' && <Dashboard onNavigate={setActiveProPage} />}
                         {activeProPage === 'invoicing' && <Invoicing />}
                         {activeProPage === 'salestax' && <SalesTax />}
                         {activeProPage === 'policy' && <PolicyEngine />}

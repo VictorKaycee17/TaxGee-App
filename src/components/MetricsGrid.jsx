@@ -7,7 +7,18 @@ import {
     ArrowTrendingUpIcon
 } from '@heroicons/react/24/outline';
 
-const MetricsGrid = ({ outstanding, average, trend, complianceScore, complianceGrade, tccStatus }) => {
+const MetricsGrid = ({
+    outstanding,
+    average,
+    trend,
+    complianceScore,
+    complianceGrade,
+    tccStatus,
+    onPayNow,
+    onViewTrend,
+    onRenewTCC,
+    onViewCompliance
+}) => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
             <MetricCard
@@ -17,7 +28,7 @@ const MetricsGrid = ({ outstanding, average, trend, complianceScore, complianceG
                 trend={trend}
                 icon={<ExclamationCircleIcon className="w-5 h-5 text-rose-500" />}
                 actionLabel="Pay Now"
-                onAction={() => console.log('Pay Now')}
+                onAction={onPayNow}
             />
 
             <MetricCard
@@ -27,7 +38,7 @@ const MetricsGrid = ({ outstanding, average, trend, complianceScore, complianceG
                 trend={{ direction: 'down', percentage: 5.2, period: 'vs last month' }}
                 icon={<PresentationChartBarIcon className="w-5 h-5 text-slate-500" />}
                 actionLabel="Trend Details"
-                onAction={() => console.log('View Trend')}
+                onAction={onViewTrend}
             />
 
             <MetricCard
@@ -36,7 +47,7 @@ const MetricsGrid = ({ outstanding, average, trend, complianceScore, complianceG
                 status="success"
                 icon={<CheckBadgeIcon className="w-5 h-5 text-emerald-500" />}
                 actionLabel="Renew TCC"
-                onAction={() => console.log('Renew TCC')}
+                onAction={onRenewTCC}
             />
 
             <MetricCard
@@ -45,6 +56,7 @@ const MetricsGrid = ({ outstanding, average, trend, complianceScore, complianceG
                 status="teal"
                 icon={<ArrowTrendingUpIcon className="w-5 h-5 text-teal-500" />}
                 actionLabel={`Grade: ${complianceGrade}`}
+                onAction={onViewCompliance}
             />
         </div>
     );

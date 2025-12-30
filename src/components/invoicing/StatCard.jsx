@@ -1,57 +1,63 @@
 import React from 'react';
-import {
-    DocumentTextIcon,
-    ExclamationCircleIcon,
-    CheckCircleIcon,
-    PencilSquareIcon
-} from '@heroicons/react/24/outline';
+import { ArrowLongRightIcon } from '@heroicons/react/24/solid';
 
-const StatCard = ({ title, value, subValue, info, type, linkText, onLinkClick }) => {
-    const config = {
-        outstanding: {
-            icon: <DocumentTextIcon className="w-5 h-5 text-amber-500" />,
-            border: 'border-l-4 border-l-amber-500',
-            linkClass: 'text-amber-600 hover:text-amber-700'
+const StatCard = ({ title, count, amount, secondaryInfo, linkText, linkAction, type = 'default' }) => {
+
+    const styles = {
+        warning: {
+            borderLeft: 'border-amber-500',
+            link: 'text-amber-600 hover:text-amber-700'
         },
-        overdue: {
-            icon: <ExclamationCircleIcon className="w-5 h-5 text-rose-500" />,
-            border: 'border-l-4 border-l-rose-500',
-            linkClass: 'text-rose-600 hover:text-rose-700'
+        danger: {
+            borderLeft: 'border-rose-500',
+            link: 'text-rose-600 hover:text-rose-700'
         },
-        paid: {
-            icon: <CheckCircleIcon className="w-5 h-5 text-emerald-500" />,
-            border: 'border-l-4 border-l-emerald-500',
-            linkClass: 'text-emerald-600 hover:text-emerald-700'
+        success: {
+            borderLeft: 'border-emerald-500',
+            link: 'text-emerald-600 hover:text-emerald-700'
         },
-        draft: {
-            icon: <PencilSquareIcon className="w-5 h-5 text-slate-400" />,
-            border: 'border-l-4 border-l-slate-400',
-            linkClass: 'text-slate-600 hover:text-slate-700'
+        info: {
+            borderLeft: 'border-slate-400',
+            link: 'text-slate-600 hover:text-slate-800'
+        },
+        default: {
+            borderLeft: 'border-slate-200',
+            link: 'text-teal-600 hover:text-teal-700'
         }
     };
 
-    const style = config[type] || config.outstanding;
+    const currentStyle = styles[type] || styles.default;
 
     return (
-        <div className={`bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md ${style.border}`}>
-            <div className="flex items-center gap-2 mb-4">
-                {style.icon}
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">{title}</h3>
-            </div>
+        <div className={`bg-white dark:bg-slate-900 rounded-lg p-5 border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 ${currentStyle.borderLeft}`}>
+            <h3 className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+                {title}
+            </h3>
 
             <div className="space-y-1 mb-4">
-                <p className="text-2xl font-black text-slate-900 dark:text-white">{value}</p>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{subValue}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {typeof count === 'number' ? count : 0} <span className="text-sm font-normal text-slate-500">invoices</span>
+                </p>
+                {amount && (
+                    <p className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                        {amount}
+                    </p>
+                )}
             </div>
 
-            <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-500">{info}</span>
-                <button
-                    onClick={onLinkClick}
-                    className={`text-xs font-bold underline transition-colors ${style.linkClass}`}
-                >
-                    {linkText} →
-                </button>
+            <div className="flex items-end justify-between">
+                <p className="text-xs text-slate-500 dark:text-slate-500">
+                    {secondaryInfo}
+                </p>
+                {linkText && (
+                    <button
+                        onClick={linkAction}
+                        className={`text-xs font-semibold inline-flex items-center gap-1 ${currentStyle.link} transition-colors`}
+                    >
+                        {linkText}
+                        <ArrowLongRightIcon className="w-3.5 h-3.5" />
+                    </button>
+                )}
             </div>
         </div>
     );

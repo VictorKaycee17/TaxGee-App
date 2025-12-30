@@ -1,142 +1,153 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import FilingHubHeader from '../components/filingHub/FilingHubHeader';
-import FilingQuickStats from '../components/filingHub/FilingQuickStats';
-import ActiveReturnsSection from '../components/filingHub/ActiveReturnsSection';
+import ReturnCard from '../components/filingHub/ReturnCard';
+
+// Lazy load wizard
+const CreateReturnWizard = lazy(() => import('../components/filingHub/CreateReturnWizard'));
 
 const FilingHub = () => {
-    // Mock returns data
-    const mockReturns = [
+    // State
+    const [showCreateWizard, setShowCreateWizard] = useState(false);
+
+    // Mock Data
+    const [returns, setReturns] = useState([
         {
-            id: 1,
-            type: 'VAT Return',
-            period: 'Q4 2025 (Oct-Dec)',
+            id: 'ret-001',
+            taxType: 'vat',
+            periodLabel: 'Dec 2025 VAT Return',
+            periodDates: 'Dec 1 - Dec 31, 2025',
             status: 'draft',
-            progress: 40,
-            nextStep: 'Review & Validate',
-            icon: '🟢'
+            amount: 1245000,
+            dueDate: 'Jan 21, 2026'
         },
         {
-            id: 2,
-            type: 'CIT Return',
-            period: 'Year 2025',
+            id: 'ret-002',
+            taxType: 'cit',
+            periodLabel: 'Q4 2025 CIT',
+            periodDates: 'Oct 1 - Dec 31, 2025',
             status: 'pending',
-            progress: 75,
-            nextStep: 'FIRS Submission',
-            icon: '🔵'
+            amount: 850000,
+            dueDate: 'Jan 31, 2026'
         },
         {
-            id: 3,
-            type: 'PAYE Return',
-            period: 'November 2025',
+            id: 'ret-003',
+            taxType: 'vat',
+            periodLabel: 'Nov 2025 VAT Return',
+            periodDates: 'Nov 1 - Nov 30, 2025',
             status: 'filed',
-            filedDate: 'Dec 10, 2025',
-            din: 'FIRS-2025-1254',
-            icon: '🟣'
+            amount: 1120000,
+            dueDate: 'Dec 21, 2025'
         },
         {
-            id: 4,
-            type: 'WHT Return',
-            period: 'Q4 2025',
-            status: 'draft',
-            progress: 20,
-            nextStep: 'Data Collection',
-            icon: '🟡'
+            id: 'ret-004',
+            taxType: 'wht',
+            periodLabel: 'Nov 2025 WHT',
+            periodDates: 'Nov 1 - Nov 30, 2025',
+            status: 'overdue',
+            amount: 125000,
+            dueDate: 'Dec 21, 2025'
         }
-    ];
+    ]);
 
-    const stats = {
-        totalReturns: 12,
-        thisYear: 6,
-        filed: 3,
-        pending: 2,
-        draft: 1,
-        vatLiability: 156000,
-        citLiability: 42000000
-    };
-
-    const handleViewAll = () => {
-        console.log('View all returns clicked');
-    };
-
+    // Handlers
     const handleCreateReturn = () => {
-        console.log('Create return clicked');
+        setShowCreateWizard(true);
     };
 
-    const handleSyncData = () => {
-        console.log('Sync data clicked');
+    const handleSyncData = async () => {
+        return new Promise(resolve => setTimeout(resolve, 2000));
     };
 
-    const handleContinue = (id) => {
-        console.log('Continue return:', id);
+    const handleContinueReturn = (ret) => {
+        // Logic to open editor
+        setShowCreateWizard(true); // Reusing wizard for demo
     };
 
-    const handleView = (id) => {
-        console.log('View return:', id);
+    const handleFileNow = (ret) => {
+        // Logic to jump to filing step
+        setShowCreateWizard(true);
     };
 
-    const handleAction = (id) => {
-        console.log('More actions for return:', id);
+    const handleViewReturn = (ret) => {
+        alert('Opening read-only view of return ' + ret.id);
     };
+
+    const handleAction = (action, ret) => {
+        console.log(`Action ${action} on return ${ret.id}`);
+        if (action === 'delete') {
+            if (confirm('Are you sure you want to delete this draft?')) {
+                setReturns(returns.filter(r => r.id !== ret.id));
+            }
+        }
+    };
+
+    // Derived Lists
+    const activeReturns = returns.filter(r => r.status !== 'filed');
+    const filedReturns = returns.filter(r => r.status === 'filed');
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
             <FilingHubHeader
-                onViewAll={handleViewAll}
-                onCreate={handleCreateReturn}
-                onSync={handleSyncData}
-                onSettings={() => console.log('Settings clicked')}
+                onCreateReturn={handleCreateReturn}
+                onViewAllReturns={() => alert('View list view...')}
+                onSyncData={handleSyncData}
+                onSettings={() => alert('Settings...')}
             />
 
-            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-                <FilingQuickStats {...stats} />
+            <div className="max-w-[1400px] mx-auto px-6">
 
-                <ActiveReturnsSection
-                    returns={mockReturns}
-                    onContinue={handleContinue}
-                    onView={handleView}
-                    onAction={handleAction}
-                    onViewAll={handleViewAll}
-                />
+                {/* Active Returns Section */}
+                <div className="mb-10">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Active Returns (Action Required)</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {activeReturns.map(ret => (
+                            <ReturnCard
+                                key={ret.id}
+                                data={ret}
+                                onContinue={handleContinueReturn}
+                                onFileNow={handleFileNow}
+                                onAction={handleAction}
+                            />
+                        ))}
 
-                {/* Recent Activity Section */}
-                <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4">
-                        Recent Filing Activity
-                    </h2>
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                                <div>
-                                    <p className="text-sm font-medium text-slate-900">VAT Return (Q3 2025)</p>
-                                    <p className="text-xs text-slate-500">Filed on Dec 15, 2025</p>
-                                </div>
+                        {/* New Return Card Prompt */}
+                        <button
+                            onClick={handleCreateReturn}
+                            className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all min-h-[220px] group"
+                        >
+                            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <span className="text-2xl font-light">+</span>
                             </div>
-                            <span className="text-emerald-600 font-bold text-sm">✓</span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                                <div>
-                                    <p className="text-sm font-medium text-slate-900">PAYE Return (Nov 2025)</p>
-                                    <p className="text-xs text-slate-500">Filed on Dec 10, 2025</p>
-                                </div>
-                            </div>
-                            <span className="text-emerald-600 font-bold text-sm">✓</span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                                <div>
-                                    <p className="text-sm font-medium text-slate-900">CIT Return (2024)</p>
-                                    <p className="text-xs text-slate-500">Filed on Dec 1, 2025 • DIN: FIRS-2024-9821</p>
-                                </div>
-                            </div>
-                            <span className="text-emerald-600 font-bold text-sm">✓</span>
-                        </div>
+                            <span className="font-bold">Start New Return</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Recent History Section */}
+                <div>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Recent Filings</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 opacity-80 hover:opacity-100 transition-opacity">
+                        {filedReturns.map(ret => (
+                            <ReturnCard
+                                key={ret.id}
+                                data={ret}
+                                onView={handleViewReturn}
+                                onAction={handleAction}
+                            />
+                        ))}
                     </div>
                 </div>
             </div>
+
+            {/* Modals */}
+            <Suspense fallback={null}>
+                {showCreateWizard && (
+                    <CreateReturnWizard
+                        open={showCreateWizard}
+                        onClose={() => setShowCreateWizard(false)}
+                    />
+                )}
+            </Suspense>
         </div>
     );
 };

@@ -1,193 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import ReceiptsHeader from '../components/receipts/ReceiptsHeader';
-import QuickStatsBar from '../components/receipts/QuickStatsBar';
-import ReceiptFiltersBar from '../components/receipts/ReceiptFiltersBar';
-import ReceiptCard from '../components/receipts/ReceiptCard';
-import ReceiptTable from '../components/receipts/ReceiptTable';
-import { Squares2X2Icon, TableCellsIcon } from '@heroicons/react/24/outline';
+import ReceiptsFilters from '../components/receipts/ReceiptsFilters';
+import ReceiptsList from '../components/receipts/ReceiptsList';
+
+const UploadReceiptModal = lazy(() => import('../components/receipts/UploadReceiptModal'));
+const ReceiptDetailsModal = lazy(() => import('../components/receipts/ReceiptDetailsModal'));
 
 const Receipts = () => {
-    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
-    const [filters, setFilters] = useState({
-        dateRange: 'all',
-        category: 'all',
-        taxType: 'all',
-        status: 'all'
-    });
-    const [selectedReceipts, setSelectedReceipts] = useState([]);
+    // State
+    const [viewMode, setViewMode] = useState('grid');
+    const [showUploadModal, setShowUploadModal] = useState(false);
+    const [selectedReceipt, setSelectedReceipt] = useState(null);
 
-    // Mock receipt data
-    const mockReceipts = [
-        {
-            id: 1,
-            vendor: 'First Bank',
-            amount: 45000,
-            date: '15 Dec 2025',
-            category: 'Office Supplies',
-            taxType: 'VAT Input',
-            status: 'matched',
-            thumbnail: null
-        },
-        {
-            id: 2,
-            vendor: 'Zenith Bank',
-            amount: 120500,
-            date: '14 Dec 2025',
-            category: 'Professional Services',
-            taxType: null,
-            status: 'untagged',
-            thumbnail: null
-        },
-        {
-            id: 3,
-            vendor: 'IKEDC',
-            amount: 28750,
-            date: '13 Dec 2025',
-            category: 'Utilities',
-            taxType: 'VAT Input',
-            status: 'matched',
-            thumbnail: null
-        },
-        {
-            id: 4,
-            vendor: 'Uber Nigeria',
-            amount: 8500,
-            date: '12 Dec 2025',
-            category: 'Travel & Transport',
-            taxType: 'VAT Input',
-            status: 'unmatched',
-            thumbnail: null
-        },
-        {
-            id: 5,
-            vendor: 'Shoprite',
-            amount: 15600,
-            date: '11 Dec 2025',
-            category: 'Entertainment',
-            taxType: null,
-            status: 'untagged',
-            thumbnail: null
-        },
-        {
-            id: 6,
-            vendor: 'Jumia',
-            amount: 52000,
-            date: '10 Dec 2025',
-            category: 'Office Supplies',
-            taxType: 'VAT Input',
-            status: 'matched',
-            thumbnail: null
-        }
-    ];
+    // Mock Data
+    const [receipts, setReceipts] = useState([
+        { id: 1, vendor: 'Acme Supermarket', date: '2025-12-25', amount: 15000, category: 'Supplies', taxType: 'VAT', status: 'processed' },
+        { id: 2, vendor: 'Uber Ride', date: '2025-12-24', amount: 4500, category: 'Transport', taxType: 'None', status: 'processed' },
+        { id: 3, vendor: 'Chicken Republic', date: '2025-12-23', amount: 8200, category: 'Meals', taxType: 'VAT', status: 'flagged' },
+        { id: 4, vendor: 'Fuel Station', date: '2025-12-22', amount: 25000, category: 'Transport', taxType: 'None', status: 'pending' },
+        { id: 5, vendor: 'Eko Hotels', date: '2025-12-20', amount: 150000, category: 'Travel', taxType: 'VAT', status: 'processed' },
+    ]);
 
-    const stats = {
-        totalReceipts: mockReceipts.length,
-        thisMonth: mockReceipts.filter(r => r.date.includes('Dec 2025')).length,
-        totalDeductible: mockReceipts.reduce((sum, r) => sum + r.amount, 0),
-        untagged: mockReceipts.filter(r => r.status === 'untagged').length,
-        vatInput: mockReceipts.filter(r => r.taxType === 'VAT Input').reduce((sum, r) => sum + r.amount, 0)
+    // Handlers
+    const handleSearch = (query) => {
+        console.log('Search:', query);
     };
 
-    const handleFilterChange = (key, value) => {
-        setFilters(prev => ({ ...prev, [key]: value }));
-    };
-
-    const handleClearFilters = () => {
-        setFilters({
-            dateRange: 'all',
-            category: 'all',
-            taxType: 'all',
-            status: 'all'
-        });
-    };
-
-    const handleSelectReceipt = (id) => {
-        setSelectedReceipts(prev =>
-            prev.includes(id) ? prev.filter(rid => rid !== id) : [...prev, id]
-        );
+    const handleFilterChange = (filters) => {
+        console.log('Filters:', filters);
     };
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
             <ReceiptsHeader
-                onUpload={() => console.log('Upload clicked')}
-                onSearch={() => console.log('Search clicked')}
-                onReports={() => console.log('Reports clicked')}
-                onSettings={() => console.log('Settings clicked')}
+                onUploadReceipt={() => setShowUploadModal(true)}
+                onSearch={handleSearch}
+                onViewReports={() => alert('Reports coming soon')}
+                onSettings={() => alert('Settings coming soon')}
             />
 
-            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-                <QuickStatsBar {...stats} />
+            <div className="max-w-[1400px] mx-auto px-6">
 
-                <ReceiptFiltersBar
-                    filters={filters}
+                {/* Stats Widget (Optional) */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+                        <p className="text-xs text-slate-500 uppercase font-bold">Total Spent (Dec)</p>
+                        <p className="text-xl font-black text-slate-900 dark:text-white">₦202,700</p>
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+                        <p className="text-xs text-slate-500 uppercase font-bold">VAT Deductible</p>
+                        <p className="text-xl font-black text-emerald-600">₦15,200</p>
+                    </div>
+                </div>
+
+                <ReceiptsFilters
+                    viewMode={viewMode}
+                    onToggleView={setViewMode}
                     onFilterChange={handleFilterChange}
-                    onClearFilters={handleClearFilters}
-                    onSaveFilterSet={() => console.log('Save filter set')}
+                    onClearFilters={() => console.log('Clear')}
                 />
 
-                {/* View Toggle */}
-                <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm text-slate-600 font-medium">
-                        Showing {mockReceipts.length} receipt{mockReceipts.length !== 1 ? 's' : ''}
-                    </div>
-                    <div className="flex gap-2 bg-white border border-slate-200 rounded-lg p-1">
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded transition-all ${viewMode === 'grid'
-                                    ? 'bg-teal-600 text-white shadow-sm'
-                                    : 'text-slate-400 hover:text-slate-600'
-                                }`}
-                        >
-                            <Squares2X2Icon className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('table')}
-                            className={`p-2 rounded transition-all ${viewMode === 'table'
-                                    ? 'bg-teal-600 text-white shadow-sm'
-                                    : 'text-slate-400 hover:text-slate-600'
-                                }`}
-                        >
-                            <TableCellsIcon className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
+                <ReceiptsList
+                    receipts={receipts}
+                    viewMode={viewMode}
+                    onSelectionChange={() => { }}
+                    onViewReceipt={setSelectedReceipt}
+                />
+            </div>
 
-                {/* Receipt Display */}
-                {viewMode === 'grid' ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {mockReceipts.map(receipt => (
-                            <ReceiptCard
-                                key={receipt.id}
-                                receipt={receipt}
-                                isSelected={selectedReceipts.includes(receipt.id)}
-                                onView={(id) => console.log('View receipt', id)}
-                                onAction={(id) => console.log('Action for receipt', id)}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <ReceiptTable
-                        receipts={mockReceipts}
-                        selectedIds={selectedReceipts}
-                        onView={(id) => console.log('View receipt', id)}
-                        onSelect={handleSelectReceipt}
+            {/* Modals */}
+            <Suspense fallback={null}>
+                {showUploadModal && (
+                    <UploadReceiptModal
+                        open={showUploadModal}
+                        onClose={() => setShowUploadModal(false)}
                     />
                 )}
-
-                {/* Pagination */}
-                <div className="mt-8 flex items-center justify-center gap-2">
-                    <button className="px-3 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 transition-all">
-                        &lt; Previous
-                    </button>
-                    <button className="px-3 py-2 text-sm font-bold bg-teal-600 text-white rounded-lg">1</button>
-                    <button className="px-3 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 transition-all">2</button>
-                    <button className="px-3 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 transition-all">3</button>
-                    <button className="px-3 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 transition-all">
-                        Next &gt;
-                    </button>
-                </div>
-            </div>
+                {selectedReceipt && (
+                    <ReceiptDetailsModal
+                        receipt={selectedReceipt}
+                        onClose={() => setSelectedReceipt(null)}
+                    />
+                )}
+            </Suspense>
         </div>
     );
 };

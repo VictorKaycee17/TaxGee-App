@@ -1,125 +1,138 @@
-import React, { useState } from 'react';
-import { useInvoiceData } from '../hooks/useInvoiceData';
+import React, { useState, lazy, Suspense } from 'react';
 import InvoicingHeader from '../components/invoicing/InvoicingHeader';
 import InvoiceStatsGrid from '../components/invoicing/InvoiceStatsGrid';
 import InvoicingToolbar from '../components/invoicing/InvoicingToolbar';
 import InvoiceTable from '../components/invoicing/InvoiceTable';
 import TablePagination from '../components/invoicing/TablePagination';
 import BulkActionBar from '../components/invoicing/BulkActionBar';
-import EmptyInvoiceState from '../components/invoicing/EmptyInvoiceState';
-import CreateInvoiceModal from '../components/invoicing/modals/CreateInvoiceModal';
-import InvoiceDetailModal from '../components/invoicing/modals/InvoiceDetailModal';
+import { PlusIcon } from '@heroicons/react/24/outline';
+
+const CreateInvoiceModal = lazy(() => import('../components/invoicing/modals/CreateInvoiceModal'));
+const InvoiceDetailModal = lazy(() => import('../components/invoicing/modals/InvoiceDetailModal'));
+const AddClientModal = lazy(() => import('../components/invoicing/modals/AddClientModal'));
 
 const Invoicing = () => {
-    const [filters, setFilters] = useState({ searchQuery: '', status: 'all' });
-    const { invoices, loading, error, stats } = useInvoiceData(filters);
+    // State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
-    // Selection state
-    const [selectedInvoices, setSelectedInvoices] = useState([]);
+    // Modals
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [showClientModal, setShowClientModal] = useState(false);
+    const [selectedInvoice, setSelectedInvoice] = useState(null);
 
-    // Modal states
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-    const [activeInvoice, setActiveInvoice] = useState(null);
+    // Mock Data
+    const invoices = Array.from({ length: 50 }, (_, i) => ({
+        id: i + 1,
+        date: 'Dec 20, 2025',
+        dateRelative: `${Math.floor(Math.random() * 30)} days ago`,
+        number: `INV-2025-${String(i + 1).padStart(5, '0')}`,
+        client: i % 2 === 0 ? 'Acme Corp' : 'Jane Doe',
+        clientEmail: i % 2 === 0 ? 'john@acme.com' : 'jane@email.com',
+        amount: `₦${(Math.random() * 500000 + 50000).toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+        taxType: i % 3 === 0 ? 'VAT (7.5%)' : (i % 3 === 1 ? 'WHT (5%)' : 'None'),
+        status: ['Paid', 'Pending', 'Overdue', 'Draft', 'Sent'][Math.floor(Math.random() * 5)],
+        dueDate: 'Jan 20, 2026',
+        dueRelative: 'in 20 days'
+    }));
 
-    const handleSelectInvoice = (id) => {
-        setSelectedInvoices(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
-    };
-
-    const handleSelectAll = () => {
-        if (selectedInvoices.length === invoices.length) {
-            setSelectedInvoices([]);
+    // Selection Handlers
+    const handleSelect = (id, checked) => {
+        if (checked) {
+            setSelectedIds([...selectedIds, id]);
         } else {
-            setSelectedInvoices(invoices.map(i => i.id));
+            setSelectedIds(selectedIds.filter(i => i !== id));
         }
     };
 
-    const handleViewInvoice = (invoice) => {
-        setActiveInvoice(invoice);
-        setIsDetailModalOpen(true);
-    };
-
-    const handleFilterChange = (newFilters) => {
-        setFilters(prev => ({ ...prev, ...newFilters }));
-    };
-
-    const handleSaveInvoice = (newInvoice) => {
-        console.log('Saving Invoice:', newInvoice);
-        // This would typically trigger a POST/PUT request and cache invalidation
-        alert('Invoice created successfully!');
+    const handleSelectAll = (checked) => {
+        if (checked) {
+            setSelectedIds(invoices.map(i => i.id));
+        } else {
+            setSelectedIds([]);
+        }
     };
 
     return (
-        <div className="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 animate-fade-in relative min-h-screen">
-            <InvoicingHeader
-                title="e-Invoicing"
-                subtitle="Generate and track tax-compliant invoices for your business"
-                breadcrumbs={[
-                    { label: 'Pro Dashboard', href: '#' },
-                    { label: 'e-Invoicing' }
-                ]}
-                onCreateClick={() => setIsCreateModalOpen(true)}
-            />
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
-            <InvoiceStatsGrid stats={stats} />
+                {/* Header */}
+                <InvoicingHeader
+                    actionButton={{
+                        label: 'Create Invoice',
+                        icon: <PlusIcon className="w-5 h-5 mr-2" />,
+                        onClick: () => setShowCreateModal(true)
+                    }}
+                />
 
-            <InvoicingToolbar
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                onCreateClick={() => setIsCreateModalOpen(true)}
-            />
+                {/* Stats */}
+                <InvoiceStatsGrid />
 
-            {loading ? (
-                <div className="space-y-4 animate-pulse">
-                    {[...Array(5)].map((_, i) => (
-                        <div key={i} className="h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl w-full" />
-                    ))}
-                </div>
-            ) : invoices.length === 0 ? (
-                <EmptyInvoiceState onCreateClick={() => setIsCreateModalOpen(true)} />
-            ) : (
-                <div className="space-y-6">
+                {/* Toolbar */}
+                <InvoicingToolbar
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onCreateClick={() => setShowCreateModal(true)}
+                />
+
+                {/* Table */}
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                     <InvoiceTable
-                        invoices={invoices}
-                        selectedInvoices={selectedInvoices}
-                        onSelectInvoice={handleSelectInvoice}
+                        invoices={invoices.slice(0, itemsPerPage)}
+                        selectedIds={selectedIds}
+                        onSelect={handleSelect}
                         onSelectAll={handleSelectAll}
-                        onViewInvoice={handleViewInvoice}
+                        onView={(inv) => {
+                            setSelectedInvoice(inv);
+                            setShowDetailModal(true);
+                        }}
                     />
-
                     <TablePagination
-                        currentPage={1}
-                        totalItems={234} // Mock total
-                        itemsPerPage={50}
-                        onPageChange={(page) => console.log('Change page', page)}
+                        currentPage={currentPage}
+                        totalPages={5}
+                        totalItems={50}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={setCurrentPage}
+                        onItemsPerPageChange={setItemsPerPage}
                     />
                 </div>
-            )}
+            </div>
 
+            {/* Sticky Bulk Action Bar */}
             <BulkActionBar
-                selectedCount={selectedInvoices.length}
-                onClear={() => setSelectedInvoices([])}
-                onMarkPaid={() => alert('Marked as paid')}
-                onEmail={() => alert('Sending emails')}
-                onDelete={() => alert('Deleting invoices')}
+                selectedCount={selectedIds.length}
+                onClearSelection={() => setSelectedIds([])}
+                onMarkPaid={() => alert('Marking paid...')}
+                onEmail={() => alert('Sending emails...')}
+                onDelete={() => alert('Deleting...')}
             />
 
-            <CreateInvoiceModal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
-                onSave={handleSaveInvoice}
-            />
-
-            <InvoiceDetailModal
-                isOpen={isDetailModalOpen}
-                onClose={() => {
-                    setIsDetailModalOpen(false);
-                    setActiveInvoice(null);
-                }}
-                invoice={activeInvoice}
-            />
+            {/* Modals */}
+            <Suspense fallback={null}>
+                {showCreateModal && (
+                    <CreateInvoiceModal
+                        open={showCreateModal}
+                        onClose={() => setShowCreateModal(false)}
+                    />
+                )}
+                {showDetailModal && (
+                    <InvoiceDetailModal
+                        open={showDetailModal}
+                        invoice={selectedInvoice}
+                        onClose={() => setShowDetailModal(false)}
+                    />
+                )}
+                {showClientModal && (
+                    <AddClientModal
+                        open={showClientModal}
+                        onClose={() => setShowClientModal(false)}
+                    />
+                )}
+            </Suspense>
         </div>
     );
 };

@@ -1,12 +1,12 @@
 import React from 'react';
-import { EyeIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
-const TransactionsTable = ({ transactions = [], onViewAll }) => {
+const TransactionsTable = ({ transactions = [], onViewAll, onViewTransaction }) => {
     return (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
             {/* Header */}
-            <div className="px-5 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h3 className="text-sm font-bold text-slate-900">
+            <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                     Recent Transactions ({transactions.length})
                 </h3>
                 {onViewAll && (
@@ -22,39 +22,49 @@ const TransactionsTable = ({ transactions = [], onViewAll }) => {
             {/* Table */}
             <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
+                    <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
                         <tr>
-                            <th className="px-5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">Time</th>
-                            <th className="px-5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">Terminal</th>
-                            <th className="px-5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">Amount</th>
-                            <th className="px-5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">Method</th>
-                            <th className="px-5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">Category</th>
-                            <th className="px-5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
+                            <th className="px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Time</th>
+                            <th className="px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Terminal</th>
+                            <th className="px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Amount</th>
+                            <th className="px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Method</th>
+                            <th className="px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Category</th>
+                            <th className="px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Status</th>
                             <th className="px-5 py-3 w-10"></th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {transactions.map(txn => (
-                            <tr key={txn.id} className="hover:bg-slate-50 transition-colors">
-                                <td className="px-5 py-3 text-sm text-slate-600 whitespace-nowrap">{txn.time}</td>
-                                <td className="px-5 py-3 text-sm font-medium text-slate-700">{txn.terminal}</td>
-                                <td className="px-5 py-3 text-sm font-bold text-slate-900">₦{txn.amount.toLocaleString()}</td>
+                            <tr
+                                key={txn.id}
+                                className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                                onClick={() => onViewTransaction && onViewTransaction(txn)}
+                            >
+                                <td className="px-5 py-3 text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">{txn.time}</td>
+                                <td className="px-5 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">{txn.terminal}</td>
+                                <td className="px-5 py-3 text-sm font-bold text-slate-900 dark:text-white">₦{txn.amount.toLocaleString()}</td>
                                 <td className="px-5 py-3">
-                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-xs font-medium capitalize">
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium capitalize">
                                         {txn.method === 'card' && '💳'}
                                         {txn.method === 'cash' && '💵'}
                                         {txn.method === 'wallet' && '📱'}
                                         {txn.method}
                                     </span>
                                 </td>
-                                <td className="px-5 py-3 text-sm text-slate-600">{txn.category}</td>
+                                <td className="px-5 py-3 text-sm text-slate-600 dark:text-slate-400">{txn.category}</td>
                                 <td className="px-5 py-3">
-                                    <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                                         ✓ Matched
                                     </span>
                                 </td>
                                 <td className="px-5 py-3 text-right">
-                                    <button className="text-slate-400 hover:text-teal-600 transition-colors">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onViewTransaction && onViewTransaction(txn);
+                                        }}
+                                        className="text-slate-400 hover:text-teal-600 transition-colors p-1.5 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/20"
+                                    >
                                         <EyeIcon className="w-4 h-4" />
                                     </button>
                                 </td>
@@ -64,14 +74,19 @@ const TransactionsTable = ({ transactions = [], onViewAll }) => {
                 </table>
             </div>
 
-            {/* Footer Pagination Placeholder */}
-            <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 flex justify-center">
-                <div className="flex gap-2">
-                    <button className="px-2 py-1 text-xs text-slate-500 hover:text-slate-800 disabled:opacity-50">&lt; Prev</button>
-                    <button className="px-2 py-1 text-xs font-bold text-teal-600 bg-teal-50 rounded">1</button>
-                    <button className="px-2 py-1 text-xs text-slate-500 hover:text-slate-800">2</button>
-                    <button className="px-2 py-1 text-xs text-slate-500 hover:text-slate-800">3</button>
-                    <button className="px-2 py-1 text-xs text-slate-500 hover:text-slate-800">Next &gt;</button>
+            {/* Footer Pagination */}
+            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+                <span className="text-xs text-slate-500">Showing 1-{transactions.length} of {transactions.length}</span>
+                <div className="flex items-center gap-1">
+                    <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors disabled:opacity-50" disabled>
+                        <ChevronLeftIcon className="w-4 h-4" />
+                    </button>
+                    <button className="px-2.5 py-1 text-xs font-bold text-teal-600 bg-teal-50 dark:bg-teal-900/30 rounded">1</button>
+                    <button className="px-2.5 py-1 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors">2</button>
+                    <button className="px-2.5 py-1 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors">3</button>
+                    <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors">
+                        <ChevronRightIcon className="w-4 h-4" />
+                    </button>
                 </div>
             </div>
         </div>

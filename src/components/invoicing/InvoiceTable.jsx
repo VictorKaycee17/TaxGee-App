@@ -1,105 +1,116 @@
 import React from 'react';
 import {
-    EllipsisVerticalIcon,
     EyeIcon,
     PencilIcon,
-    ArrowDownTrayIcon,
-    TrashIcon
+    EllipsisVerticalIcon,
+    TrashIcon,
+    PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
 
-const InvoiceTable = ({ invoices, selectedInvoices, onSelectInvoice, onSelectAll, onViewInvoice }) => {
-    const isAllSelected = invoices.length > 0 && selectedInvoices.length === invoices.length;
+const InvoiceTable = ({ invoices, selectedIds, onSelect, onSelectAll }) => {
 
-    const getStatusStyles = (status) => {
-        const lowerStatus = status.toLowerCase();
-        if (lowerStatus === 'paid') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-        if (lowerStatus === 'pending') return 'bg-amber-50 text-amber-700 border-amber-100';
-        if (lowerStatus === 'overdue') return 'bg-rose-50 text-rose-700 border-rose-100';
-        return 'bg-slate-50 text-slate-700 border-slate-100';
+    // Status Badge Helpers
+    const getStatusStyle = (status) => {
+        const styles = {
+            paid: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+            sent: 'bg-amber-50 text-amber-700 ring-amber-600/20',
+            pending: 'bg-orange-50 text-orange-700 ring-orange-600/20',
+            overdue: 'bg-rose-50 text-rose-700 ring-rose-600/20',
+            draft: 'bg-slate-50 text-slate-600 ring-slate-500/10'
+        };
+        return styles[status.toLowerCase()] || styles.draft;
     };
 
-    const getTaxStyles = (type) => {
-        const lowerType = type.toLowerCase();
-        if (lowerType === 'vat') return 'bg-teal-50 text-teal-700 border-teal-100';
-        if (lowerType === 'wht') return 'bg-indigo-50 text-indigo-700 border-indigo-100';
-        if (lowerType === 'dst') return 'bg-orange-50 text-orange-700 border-orange-100';
-        return 'bg-slate-50 text-slate-500 border-slate-100';
+    const getStatusIcon = (status) => {
+        const icons = {
+            paid: '🟢',
+            sent: '🟡',
+            pending: '🟠',
+            overdue: '🔴',
+            draft: '⚪'
+        };
+        return icons[status.toLowerCase()] || '⚪';
+    };
+
+    // Tax Badge Helper
+    const getTaxStyle = (type) => {
+        const styles = {
+            VAT: 'bg-teal-50 text-teal-700 border-teal-200',
+            WHT: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+            DST: 'bg-amber-50 text-amber-700 border-amber-200',
+            None: 'bg-slate-50 text-slate-600 border-slate-200'
+        };
+        return styles[type] || styles.None;
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-            {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
-                            <th className="p-4 w-12 text-center">
+        <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto ring-1 ring-slate-200 sm:rounded-lg">
+                <table className="min-w-full divide-y divide-slate-300">
+                    <thead className="bg-slate-50">
+                        <tr>
+                            <th scope="col" className="relative px-7 sm:w-12 sm:px-6">
                                 <input
                                     type="checkbox"
-                                    className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                                    checked={isAllSelected}
-                                    onChange={onSelectAll}
+                                    className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                    checked={selectedIds.length === invoices.length && invoices.length > 0}
+                                    onChange={(e) => onSelectAll(e.target.checked)}
                                 />
                             </th>
-                            <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Date</th>
-                            <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Invoice #</th>
-                            <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Client</th>
-                            <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Amount</th>
-                            <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Tax Type</th>
-                            <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
-                            <th className="p-4 w-12"></th>
+                            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Date</th>
+                            <th scope="col" className="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Invoice #</th>
+                            <th scope="col" className="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Client</th>
+                            <th scope="col" className="px-3 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Amount</th>
+                            <th scope="col" className="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Tax Type</th>
+                            <th scope="col" className="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
+                            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                                <span className="sr-only">Actions</span>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {invoices.map((inv) => (
-                            <tr key={inv.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group">
-                                <td className="p-4 text-center">
+                    <tbody className="divide-y divide-slate-200 bg-white">
+                        {invoices.map((invoice) => (
+                            <tr key={invoice.id} className={selectedIds.includes(invoice.id) ? 'bg-teal-50' : 'hover:bg-slate-50 transition-colors'}>
+                                <td className="relative px-7 sm:w-12 sm:px-6">
+                                    {selectedIds.includes(invoice.id) && (
+                                        <div className="absolute inset-y-0 left-0 w-0.5 bg-teal-600" />
+                                    )}
                                     <input
                                         type="checkbox"
-                                        className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                                        checked={selectedInvoices.includes(inv.id)}
-                                        onChange={() => onSelectInvoice(inv.id)}
+                                        className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                        checked={selectedIds.includes(invoice.id)}
+                                        onChange={(e) => onSelect(invoice.id, e.target.checked)}
                                     />
                                 </td>
-                                <td className="p-4">
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white capitalize">
-                                        {new Date(inv.invoiceDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                    </p>
-                                    <p className="text-[10px] text-slate-500 font-medium">Updated 2h ago</p>
+                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm">
+                                    <div className="font-medium text-slate-900">{invoice.date}</div>
+                                    <div className="text-xs text-slate-500">{invoice.dateRelative}</div>
                                 </td>
-                                <td className="p-4">
-                                    <span
-                                        onClick={() => onViewInvoice(inv)}
-                                        className="text-sm font-black text-teal-600 dark:text-teal-400 hover:underline cursor-pointer"
-                                    >
-                                        {inv.invoiceNumber}
+                                <td className="whitespace-nowrap px-3 py-4 text-sm text-teal-600 hover:text-teal-900 font-medium cursor-pointer underline-offset-2 hover:underline">
+                                    {invoice.number}
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                    <div className="font-medium text-slate-900">{invoice.client}</div>
+                                    <div className="text-xs text-slate-500">{invoice.clientEmail}</div>
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm text-right font-bold text-slate-900">
+                                    {invoice.amount}
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                    <span className={`inline-flex items-center rounded px-2 py-1 text-xs font-medium ring-1 ring-inset ${getTaxStyle(invoice.taxType.split(' ')[0])}`}>
+                                        {invoice.taxType}
                                     </span>
                                 </td>
-                                <td className="p-4">
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{inv.clientName}</p>
-                                    <p className="text-xs text-slate-500">{inv.clientEmail}</p>
-                                </td>
-                                <td className="p-4 text-right">
-                                    <p className="text-sm font-black text-slate-900 dark:text-white">
-                                        ₦{inv.total.toLocaleString()}
-                                    </p>
-                                </td>
-                                <td className="p-4">
-                                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold border ${getTaxStyles(inv.taxType)}`}>
-                                        {inv.taxType.toUpperCase()}
+                                <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${getStatusStyle(invoice.status)}`}>
+                                        <span className="text-[10px]">{getStatusIcon(invoice.status)}</span>
+                                        {invoice.status}
                                     </span>
                                 </td>
-                                <td className="p-4">
-                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold border ${getStatusStyles(inv.status)}`}>
-                                        {inv.status.toUpperCase()}
-                                    </span>
-                                </td>
-                                <td className="p-4">
-                                    <button
-                                        onClick={() => onViewInvoice(inv)}
-                                        className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
-                                    >
-                                        <EyeIcon className="w-5 h-5" />
+                                <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                    <button className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100 transition-colors">
+                                        <EllipsisVerticalIcon className="h-5 w-5" />
                                     </button>
                                 </td>
                             </tr>
@@ -109,43 +120,42 @@ const InvoiceTable = ({ invoices, selectedInvoices, onSelectInvoice, onSelectAll
             </div>
 
             {/* Mobile Card View */}
-            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-                {invoices.map((inv) => (
-                    <div key={inv.id} className="p-4 space-y-3" onClick={() => onViewInvoice(inv)}>
-                        <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-3">
-                                <input
-                                    type="checkbox"
-                                    className="rounded border-slate-300"
-                                    checked={selectedInvoices.includes(inv.id)}
-                                    onChange={() => onSelectInvoice(inv.id)}
-                                />
-                                <div>
-                                    <p className="text-xs font-black text-teal-600">{inv.invoiceNumber}</p>
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{inv.clientName}</p>
-                                </div>
+            <div className="md:hidden space-y-4">
+                {invoices.map((invoice) => (
+                    <div key={invoice.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                        <div className="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 className="font-bold text-slate-900">{invoice.number}</h3>
+                                <p className="text-sm text-slate-500">{invoice.client}</p>
                             </div>
-                            <button className="p-1 text-slate-400">
-                                <EllipsisVerticalIcon className="w-5 h-5" />
-                            </button>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${getStatusStyle(invoice.status)}`}>
+                                {invoice.status}
+                            </span>
                         </div>
 
-                        <div className="flex justify-between items-end">
-                            <div className="space-y-1">
-                                <p className="text-[10px] text-slate-500 font-bold uppercase">Amount</p>
-                                <p className="text-base font-black text-slate-900 dark:text-white">₦{inv.total.toLocaleString()}</p>
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <p className="text-xs text-slate-500 uppercase">Amount</p>
+                                <p className="text-lg font-bold text-slate-900">{invoice.amount}</p>
                             </div>
-                            <div className="text-right space-y-2">
-                                <span className={`px-2 py-1 rounded-full text-[9px] font-bold border ${getStatusStyles(inv.status)}`}>
-                                    {inv.status.toUpperCase()}
-                                </span>
-                                <p className="text-[10px] text-slate-500">Due {new Date(inv.dueDate).toLocaleDateString()}</p>
+                            <div>
+                                <p className="text-xs text-slate-500 uppercase">Due Date</p>
+                                <p className="text-sm font-medium text-slate-700">{invoice.dueDate} <span className="text-xs font-normal text-slate-400">({invoice.dueRelative})</span></p>
                             </div>
+                        </div>
+
+                        <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+                            <span className={`inline-flex items-center rounded px-2 py-1 text-xs font-medium ring-1 ring-inset ${getTaxStyle(invoice.taxType.split(' ')[0])}`}>
+                                {invoice.taxType}
+                            </span>
+                            <button className="text-slate-400 hover:text-slate-600">
+                                <EllipsisVerticalIcon className="h-6 w-6" />
+                            </button>
                         </div>
                     </div>
                 ))}
             </div>
-        </div>
+        </>
     );
 };
 

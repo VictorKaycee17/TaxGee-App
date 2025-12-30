@@ -1,39 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { XMarkIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { calculateInvoiceTotals, TAX_RATES } from '../../../utils/invoiceCalculations';
+import React, { useState } from 'react';
+import {
+    XMarkIcon,
+    UserPlusIcon,
+    PlusIcon,
+    TrashIcon
+} from '@heroicons/react/24/outline';
 
-const CreateInvoiceModal = ({ isOpen, onClose, onSave }) => {
+const CreateInvoiceModal = ({ open, onClose }) => {
     const [step, setStep] = useState(1);
+
+    // Form State
     const [formData, setFormData] = useState({
-        clientName: '',
-        clientEmail: '',
-        invoiceDate: new Date().toISOString().split('T')[0],
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        invoiceNumber: `INV-2025-${Math.floor(10000 + Math.random() * 90000)}`,
-        items: [{ id: Date.now(), description: '', quantity: 1, unitPrice: 0, taxable: true }],
-        taxType: 'vat',
-        customWhtRate: 5,
+        client: '',
+        date: new Date().toISOString().split('T')[0],
+        dueDate: '',
+        items: [{ id: 1, description: '', quantity: 1, price: 0, taxaable: true }],
+        taxType: 'VAT',
         notes: ''
     });
 
-    const [totals, setTotals] = useState({ subtotalAll: 0, subtotalTaxable: 0, taxAmount: 0, total: 0 });
+    if (!open) return null;
 
-    useEffect(() => {
-        const newTotals = calculateInvoiceTotals(formData.items, formData.taxType, formData.customWhtRate);
-        setTotals(newTotals);
-    }, [formData.items, formData.taxType, formData.customWhtRate]);
+    // Helpers
+    const calculateSubtotal = () => {
+        return formData.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    };
 
-    if (!isOpen) return null;
+    const calculateTax = () => {
+        const subtotal = calculateSubtotal();
+        const rates = { 'VAT': 0.075, 'WHT': 0.05, 'DST': 0.005, 'None': 0 };
+        return subtotal * (rates[formData.taxType] || 0);
+    };
 
     const addItem = () => {
         setFormData({
             ...formData,
-            items: [...formData.items, { id: Date.now(), description: '', quantity: 1, unitPrice: 0, taxable: true }]
+            items: [...formData.items, { id: Date.now(), description: '', quantity: 1, price: 0, taxable: true }]
         });
     };
 
     const removeItem = (id) => {
-        if (formData.items.length === 1) return;
         setFormData({
             ...formData,
             items: formData.items.filter(item => item.id !== id)
@@ -43,249 +49,269 @@ const CreateInvoiceModal = ({ isOpen, onClose, onSave }) => {
     const updateItem = (id, field, value) => {
         setFormData({
             ...formData,
-            items: formData.items.map(item => item.id === id ? { ...item, [field]: value } : item)
+            items: formData.items.map(item =>
+                item.id === id ? { ...item, [field]: value } : item
+            )
         });
     };
 
-    const handleSave = () => {
-        onSave({ ...formData, ...totals });
-        onClose();
-    };
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
-            <div className="relative bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] rounded-3xl overflow-hidden shadow-2xl flex flex-col animate-scale-in">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                     <div>
-                        <h2 className="text-xl font-black text-slate-900 dark:text-white">Create New Invoice</h2>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Step {step} of 2</p>
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Create New Invoice</h2>
+                        <div className="flex items-center gap-2 mt-1">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className={`h-1.5 w-8 rounded-full ${step >= i ? 'bg-teal-500' : 'bg-slate-300'}`} />
+                            ))}
+                            <span className="text-xs text-slate-500 ml-2">Step {step} of 4</span>
+                        </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors">
-                        <XMarkIcon className="w-6 h-6 text-slate-500" />
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                        <XMarkIcon className="w-6 h-6" />
                     </button>
                 </div>
 
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8">
-                    {step === 1 ? (
-                        <div className="space-y-6 animate-fade-in">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Client Name *</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all font-medium"
-                                        placeholder="e.g. Acme Corp"
-                                        value={formData.clientName}
-                                        onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Client Email *</label>
-                                    <input
-                                        type="email"
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all font-medium"
-                                        placeholder="e.g. billing@acme.com"
-                                        value={formData.clientEmail}
-                                        onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
-                                    />
-                                </div>
-                            </div>
+                {/* Body - Scrollable */}
+                <div className="flex-1 overflow-y-auto p-8">
 
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Invoice #</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-teal-600"
-                                        value={formData.invoiceNumber}
-                                        readOnly
-                                    />
+                    {/* Step 1: Client Selection */}
+                    {step === 1 && (
+                        <div className="max-w-2xl mx-auto space-y-6">
+                            <h3 className="text-xl font-bold text-slate-800">Who is this invoice for?</h3>
+
+                            <div className="space-y-4">
+                                <label className="block text-sm font-medium text-slate-700">Select Client</label>
+                                <div className="relative">
+                                    <select
+                                        className="block w-full rounded-lg border-slate-300 py-3 px-4 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                        value={formData.client}
+                                        onChange={e => setFormData({ ...formData, client: e.target.value })}
+                                    >
+                                        <option value="">Select a client...</option>
+                                        <option value="acme">Acme Corp (john@acme.com)</option>
+                                        <option value="jane">Jane Doe (jane@email.com)</option>
+                                    </select>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Issue Date</label>
-                                    <input
-                                        type="date"
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-medium"
-                                        value={formData.invoiceDate}
-                                        onChange={(e) => setFormData({ ...formData, invoiceDate: e.target.value })}
-                                    />
+
+                                <div className="flex items-center gap-4 my-6">
+                                    <div className="h-px bg-slate-200 flex-1"></div>
+                                    <span className="text-sm text-slate-400">OR</span>
+                                    <div className="h-px bg-slate-200 flex-1"></div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Due Date</label>
-                                    <input
-                                        type="date"
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-medium text-rose-500"
-                                        value={formData.dueDate}
-                                        onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                                    />
-                                </div>
+
+                                <button className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 font-medium hover:border-teal-500 hover:text-teal-600 transition-colors bg-slate-50 hover:bg-white">
+                                    <UserPlusIcon className="w-5 h-5" />
+                                    Create New Client
+                                </button>
                             </div>
                         </div>
-                    ) : (
-                        <div className="space-y-8 animate-fade-in">
-                            {/* Table */}
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Line Items</h3>
-                                    <button
-                                        onClick={addItem}
-                                        className="flex items-center gap-2 text-teal-600 hover:text-teal-700 text-xs font-bold uppercase transition-colors"
-                                    >
-                                        <PlusIcon className="w-4 h-4" />
-                                        <span>Add Item</span>
-                                    </button>
-                                </div>
+                    )}
 
-                                <div className="space-y-3">
-                                    {formData.items.map((item) => (
-                                        <div key={item.id} className="grid grid-cols-12 gap-3 items-center group">
-                                            <div className="col-span-12 sm:col-span-5">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Description"
-                                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium"
-                                                    value={item.description}
-                                                    onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                                                />
-                                            </div>
-                                            <div className="col-span-4 sm:col-span-2">
-                                                <input
-                                                    type="number"
-                                                    placeholder="Qty"
-                                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-center"
-                                                    value={item.quantity}
-                                                    onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value))}
-                                                />
-                                            </div>
-                                            <div className="col-span-4 sm:col-span-2">
-                                                <input
-                                                    type="number"
-                                                    placeholder="Price"
-                                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-right"
-                                                    value={item.unitPrice}
-                                                    onChange={(e) => updateItem(item.id, 'unitPrice', parseFloat(e.target.value))}
-                                                />
-                                            </div>
-                                            <div className="col-span-2 sm:col-span-1 text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-5 h-5 rounded border-slate-300 text-teal-600"
-                                                    checked={item.taxable}
-                                                    onChange={(e) => updateItem(item.id, 'taxable', e.target.checked)}
-                                                />
-                                            </div>
-                                            <div className="col-span-2 sm:col-span-2 flex justify-end">
-                                                <button
-                                                    onClick={() => removeItem(item.id)}
-                                                    className="p-2 text-slate-300 hover:text-rose-500 transition-colors"
-                                                >
-                                                    <TrashIcon className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                    {/* Step 2: Invoice Details */}
+                    {step === 2 && (
+                        <div className="max-w-2xl mx-auto space-y-6">
+                            <h3 className="text-xl font-bold text-slate-800">Invoice Details</h3>
+
+                            <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Invoice Date</label>
+                                    <input
+                                        type="date"
+                                        className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                        value={formData.date}
+                                        onChange={e => setFormData({ ...formData, date: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
+                                    <input
+                                        type="date"
+                                        className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                        value={formData.dueDate}
+                                        onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
+                                    />
                                 </div>
                             </div>
 
-                            {/* Tax Selection */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-6 border-t border-slate-100 dark:border-slate-800">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-500 uppercase block mb-4">Tax Configuration</label>
-                                    <div className="space-y-3">
-                                        {[
-                                            { id: 'vat', label: 'VAT (7.5%)', desc: 'Value Added Tax' },
-                                            { id: 'wht', label: 'WHT (5-10%)', desc: 'Withholding Tax' },
-                                            { id: 'dst', label: 'DST (0.5%)', desc: 'Digital Services Tax' },
-                                            { id: 'none', label: 'None', desc: 'No tax applicable' }
-                                        ].map((t) => (
-                                            <div
-                                                key={t.id}
-                                                onClick={() => setFormData({ ...formData, taxType: t.id })}
-                                                className={`p-4 rounded-2xl border cursor-pointer transition-all ${formData.taxType === t.id
-                                                        ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/10'
-                                                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
-                                                    }`}
-                                            >
-                                                <div className="flex justify-between items-center">
-                                                    <div>
-                                                        <p className="text-sm font-black text-slate-900 dark:text-white">{t.label}</p>
-                                                        <p className="text-[10px] text-slate-500 font-bold uppercase">{t.desc}</p>
-                                                    </div>
-                                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.taxType === t.id ? 'border-teal-500' : 'border-slate-300'
-                                                        }`}>
-                                                        {formData.taxType === t.id && <div className="w-2 h-2 bg-teal-500 rounded-full" />}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Invoice Number (Auto-generated)</label>
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value="INV-2025-00248"
+                                    className="block w-full rounded-lg bg-slate-100 border-slate-300 text-slate-500 shadow-sm cursor-not-allowed"
+                                />
+                            </div>
 
-                                {/* Sumary */}
-                                <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl space-y-4">
-                                    <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-2">Invoice Summary</h4>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-slate-500 font-bold uppercase text-[10px]">Subtotal (All)</span>
-                                            <span className="font-bold text-slate-900 dark:text-white">₦{totals.subtotalAll.toLocaleString()}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-slate-500 font-bold uppercase text-[10px]">Taxable Amount</span>
-                                            <span className="font-bold text-slate-900 dark:text-white">₦{totals.subtotalTaxable.toLocaleString()}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-teal-600 font-bold uppercase text-[10px]">Tax ({formData.taxType.toUpperCase()})</span>
-                                            <span className="font-black text-teal-600">₦{totals.taxAmount.toLocaleString()}</span>
-                                        </div>
-                                        <div className="pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                                            <span className="text-slate-900 dark:text-white font-black uppercase text-xs">Total Due</span>
-                                            <span className="text-2xl font-black text-teal-600">₦{totals.total.toLocaleString()}</span>
-                                        </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Optional Note</label>
+                                <textarea
+                                    rows={4}
+                                    className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                    placeholder="Add a note for the client..."
+                                    value={formData.notes}
+                                    onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 3: Line Items */}
+                    {step === 3 && (
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-bold text-slate-800">Line Items</h3>
+                                <button onClick={addItem} className="text-teal-600 text-sm font-bold flex items-center gap-1 hover:text-teal-700">
+                                    <PlusIcon className="w-4 h-4" /> Add Item
+                                </button>
+                            </div>
+
+                            <div className="border rounded-lg overflow-hidden">
+                                <table className="min-w-full divide-y divide-slate-200">
+                                    <thead className="bg-slate-50">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Description</th>
+                                            <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase w-20">Qty</th>
+                                            <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase w-32">Price</th>
+                                            <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase w-32">Amount</th>
+                                            <th className="px-4 py-3 w-10"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-slate-200">
+                                        {formData.items.map((item) => (
+                                            <tr key={item.id}>
+                                                <td className="px-4 py-2">
+                                                    <input
+                                                        type="text"
+                                                        className="w-full border-0 p-1 focus:ring-0 text-sm"
+                                                        placeholder="Item description"
+                                                        value={item.description}
+                                                        onChange={e => updateItem(item.id, 'description', e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full border-0 p-1 focus:ring-0 text-sm text-right"
+                                                        value={item.quantity}
+                                                        onChange={e => updateItem(item.id, 'quantity', Number(e.target.value))}
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full border-0 p-1 focus:ring-0 text-sm text-right"
+                                                        value={item.price}
+                                                        onChange={e => updateItem(item.id, 'price', Number(e.target.value))}
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-2 text-right text-sm font-semibold text-slate-700">
+                                                    ₦{(item.quantity * item.price).toLocaleString()}
+                                                </td>
+                                                <td className="px-4 py-2 text-center">
+                                                    <button onClick={() => removeItem(item.id)} className="text-slate-400 hover:text-rose-500">
+                                                        <TrashIcon className="w-4 h-4" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="flex justify-end">
+                                <div className="w-64 space-y-3">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-500">Subtotal</span>
+                                        <span className="font-semibold">₦{calculateSubtotal().toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <select
+                                            className="text-xs border-slate-200 rounded p-1 text-slate-600"
+                                            value={formData.taxType}
+                                            onChange={e => setFormData({ ...formData, taxType: e.target.value })}
+                                        >
+                                            <option value="VAT">VAT (7.5%)</option>
+                                            <option value="WHT">WHT (5%)</option>
+                                            <option value="DST">DST (0.5%)</option>
+                                            <option value="None">No Tax</option>
+                                        </select>
+                                        <span className="font-semibold text-red-600">+ ₦{calculateTax().toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between text-base border-t pt-3">
+                                        <span className="font-bold text-slate-800">Total</span>
+                                        <span className="font-black text-teal-600">₦{(calculateSubtotal() + calculateTax()).toLocaleString()}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     )}
+
+                    {/* Step 4: Review */}
+                    {step === 4 && (
+                        <div className="max-w-3xl mx-auto bg-slate-50 p-8 rounded-xl border border-slate-200">
+                            <h3 className="text-lg font-bold text-slate-900 mb-6">Review Invoice</h3>
+
+                            <div className="grid grid-cols-2 gap-8 mb-8">
+                                <div>
+                                    <p className="text-xs text-slate-500 uppercase font-semibold">Bill To</p>
+                                    <p className="font-bold text-slate-900">Acme Corp</p>
+                                    <p className="text-sm text-slate-600">john@acme.com</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs text-slate-500 uppercase font-semibold">Invoice Details</p>
+                                    <p className="font-bold text-slate-900">#INV-2025-00248</p>
+                                    <p className="text-sm text-slate-600">Due: {formData.dueDate || 'Not set'}</p>
+                                </div>
+                            </div>
+
+                            <table className="w-full mb-8">
+                                <thead>
+                                    <tr className="border-b border-slate-200">
+                                        <th className="text-left py-2 text-xs font-semibold text-slate-500 uppercase">Item</th>
+                                        <th className="text-right py-2 text-xs font-semibold text-slate-500 uppercase">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {formData.items.map(item => (
+                                        <tr key={item.id} className="border-b border-slate-100">
+                                            <td className="py-2 text-sm text-slate-700">{item.description || 'Item'} x {item.quantity}</td>
+                                            <td className="py-2 text-sm font-semibold text-right text-slate-900">₦{(item.quantity * item.price).toLocaleString()}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            <div className="flex justify-end">
+                                <div className="text-right">
+                                    <p className="text-sm text-slate-500">Total Due</p>
+                                    <p className="text-3xl font-black text-teal-600">₦{(calculateSubtotal() + calculateTax()).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                 </div>
 
-                {/* Footer Actions */}
-                <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
+                {/* Footer */}
+                <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
                     <button
-                        onClick={onClose}
-                        className="px-6 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors uppercase tracking-widest"
+                        onClick={() => step > 1 ? setStep(step - 1) : onClose()}
+                        className="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-800"
                     >
-                        Cancel
+                        {step === 1 ? 'Cancel' : 'Back'}
                     </button>
 
-                    <div className="flex gap-3">
-                        {step === 2 && (
-                            <button
-                                onClick={() => setStep(1)}
-                                className="px-6 py-3 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all"
-                            >
-                                Back
-                            </button>
-                        )}
-                        {step === 1 ? (
-                            <button
-                                onClick={() => setStep(2)}
-                                className="px-8 py-3 bg-slate-900 dark:bg-teal-500 text-white rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95"
-                            >
-                                Next: Line Items
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleSave}
-                                className="px-8 py-3 bg-teal-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-teal-500/20 transition-all active:scale-95"
-                            >
-                                Create & Send Invoice
-                            </button>
-                        )}
-                    </div>
+                    <button
+                        onClick={() => step < 4 ? setStep(step + 1) : onClose()} // Finish action
+                        className="px-6 py-2.5 bg-teal-500 text-white text-sm font-bold rounded-lg hover:bg-teal-600 transition-all shadow-sm"
+                    >
+                        {step === 4 ? 'Create & Send Invoice' : 'Continue'}
+                    </button>
                 </div>
             </div>
         </div>

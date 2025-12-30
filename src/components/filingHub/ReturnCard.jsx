@@ -1,107 +1,132 @@
-import React from 'react';
-import { EyeIcon, EllipsisVerticalIcon } from '@heroicons/react/24/outline';
+import React, { useState } from 'react';
+import {
+    CalendarIcon,
+    CurrencyDollarIcon,
+    ExclamationCircleIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    EllipsisHorizontalIcon,
+    DocumentDuplicateIcon,
+    ArchiveBoxIcon,
+    TrashIcon
+} from '@heroicons/react/24/outline';
 
-const ReturnCard = ({
-    returnData,
-    onContinue,
-    onView,
-    onAction
-}) => {
-    const { id, type, period, status, progress, nextStep, din, filedDate, icon } = returnData;
+const ReturnCard = ({ data, onContinue, onFileNow, onView, onAction }) => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    const getStatusBadge = (status) => {
-        const badges = {
-            draft: { bg: 'bg-slate-100', text: 'text-slate-700', label: 'Draft', icon: '📝' },
-            pending: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Pending', icon: '⏳' },
-            filed: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Filed', icon: '✓' }
-        };
-        return badges[status] || badges.draft;
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'draft': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+            case 'pending': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+            case 'filed': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+            case 'overdue': return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400';
+            default: return 'bg-slate-100 text-slate-700';
+        }
     };
 
-    const badge = getStatusBadge(status);
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'draft': return <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>;
+            case 'pending': return <ClockIcon className="w-4 h-4 mr-1" />;
+            case 'filed': return <CheckCircleIcon className="w-4 h-4 mr-1" />;
+            case 'overdue': return <ExclamationCircleIcon className="w-4 h-4 mr-1" />;
+            default: return null;
+        }
+    };
 
     return (
-        <div className="bg-white border border-slate-200 rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:border-teal-300">
-            {/* Card Header */}
-            <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                    <span className="text-2xl">{icon || '📄'}</span>
-                    <div>
-                        <h3 className="text-sm font-bold text-slate-900">{type}</h3>
-                        <p className="text-xs text-slate-600">{period}</p>
-                    </div>
+        <div
+            onClick={() => data.status === 'filed' ? onView(data) : onContinue(data)}
+            className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:border-indigo-300 dark:hover:border-indigo-700 transition-all cursor-pointer flex flex-col justify-between min-h-[220px]"
+        >
+            {/* Top Row: Type & Menu */}
+            <div className="flex justify-between items-start mb-4">
+                <div>
+                    <span className="inline-block px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold uppercase tracking-wide mb-2">
+                        {data.taxType}
+                    </span>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white capitalize">
+                        {data.periodLabel}
+                    </h3>
+                    <p className="text-sm text-slate-500">{data.periodDates}</p>
                 </div>
-                <button
-                    onClick={() => onAction(id)}
-                    className="p-1 text-slate-400 hover:text-slate-600 rounded transition-all"
-                >
-                    <EllipsisVerticalIcon className="w-5 h-5" />
-                </button>
-            </div>
 
-            {/* Status Badge */}
-            <div className="mb-3">
-                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full ${badge.bg} ${badge.text} text-xs font-bold uppercase tracking-wider`}>
-                    {badge.icon} {badge.label}
-                </span>
-            </div>
-
-            {/* Progress Bar (for Draft/Pending) */}
-            {(status === 'draft' || status === 'pending') && progress !== undefined && (
-                <div className="mb-3">
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs font-medium text-slate-600">Progress</span>
-                        <span className="text-xs font-bold text-slate-900">{progress}%</span>
-                    </div>
-                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                            className="h-full bg-teal-500 transition-all duration-500"
-                            style={{ width: `${progress}%` }}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Filed Info */}
-            {status === 'filed' && (
-                <div className="mb-3 space-y-1">
-                    <p className="text-xs text-slate-600">Filed on {filedDate}</p>
-                    {din && <p className="text-xs font-mono text-slate-500">DIN: {din}</p>}
-                </div>
-            )}
-
-            {/* Next Step */}
-            {nextStep && (
-                <p className="text-xs text-slate-500 mb-4">Next: {nextStep}</p>
-            )}
-
-            {/* Card Actions */}
-            <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
-                {status === 'draft' && (
+                <div className="relative">
                     <button
-                        onClick={() => onContinue(id)}
-                        className="flex-1 px-4 py-2 bg-teal-600 text-white text-xs font-bold rounded-lg hover:bg-teal-700 transition-all shadow-sm"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsMenuOpen(!isMenuOpen);
+                        }}
+                        className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
                     >
-                        Continue
+                        <EllipsisHorizontalIcon className="w-6 h-6" />
                     </button>
-                )}
-                {status === 'pending' && (
-                    <button
-                        onClick={() => onContinue(id)}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all shadow-sm"
-                    >
-                        File Return
-                    </button>
-                )}
-                <button
-                    onClick={() => onView(id)}
-                    className={`flex items-center justify-center gap-1 px-4 py-2 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-50 transition-all ${status === 'filed' ? 'flex-1' : ''
-                        }`}
-                >
-                    <EyeIcon className="w-4 h-4" />
-                    View
-                </button>
+
+                    {/* Dropdown Menu */}
+                    {isMenuOpen && (
+                        <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 z-10 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                            <button onClick={(e) => { e.stopPropagation(); onAction('duplicate', data); setIsMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-slate-600">
+                                <DocumentDuplicateIcon className="w-4 h-4" /> Duplicate
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); onAction('archive', data); setIsMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-slate-600">
+                                <ArchiveBoxIcon className="w-4 h-4" /> Archive
+                            </button>
+                            {data.status === 'draft' && (
+                                <button onClick={(e) => { e.stopPropagation(); onAction('delete', data); setIsMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-rose-50 dark:hover:bg-rose-900/20 flex items-center gap-2 text-rose-600">
+                                    <TrashIcon className="w-4 h-4" /> Delete
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
+
+            {/* Middle: Amount & Status */}
+            <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(data.status)}`}>
+                        {getStatusIcon(data.status)}
+                        {data.status}
+                    </span>
+                    <span className="text-xs font-bold text-slate-500">
+                        {data.status === 'filed' ? 'Filed on' : 'Due'} {data.dueDate}
+                    </span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-slate-900 dark:text-white">₦{data.amount.toLocaleString()}</span>
+                    <span className="text-xs font-medium text-slate-500 uppercase">Liability</span>
+                </div>
+            </div>
+
+            {/* Bottom: Actions */}
+            <div className="mt-auto">
+                {data.status === 'filed' ? (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onView(data); }}
+                        className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                        View Details
+                    </button>
+                ) : (
+                    <div className="grid grid-cols-2 gap-3">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onContinue(data); }}
+                            className="py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        >
+                            Continue
+                        </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onFileNow(data); }}
+                            className="py-2.5 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-md shadow-indigo-500/20 transition-colors"
+                        >
+                            File Now
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* Click overlay for menu close */}
+            {isMenuOpen && <div className="fixed inset-0 z-0" onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); }} />}
         </div>
     );
 };

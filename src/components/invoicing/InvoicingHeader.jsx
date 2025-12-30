@@ -1,35 +1,36 @@
 import React from 'react';
-import { PlusIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
-const InvoicingHeader = ({ title, subtitle, breadcrumbs, onCreateClick }) => {
+
+const InvoicingHeader = ({ title = "e-Invoicing", breadcrumbs = [], actionButton }) => {
     return (
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
             <div>
-                {breadcrumbs && (
-                    <nav className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-                        {breadcrumbs.map((crumb, idx) => (
-                            <React.Fragment key={idx}>
-                                {crumb.href ? (
-                                    <a href={crumb.href} className="hover:text-teal-600 transition-colors">{crumb.label}</a>
-                                ) : (
-                                    <span>{crumb.label}</span>
-                                )}
-                                {idx < breadcrumbs.length - 1 && <ChevronRightIcon className="w-3 h-3" />}
-                            </React.Fragment>
-                        ))}
-                    </nav>
-                )}
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-1">{title}</h1>
-                <p className="text-sm text-slate-500 font-medium">{subtitle}</p>
+                <div className="flex items-center text-xs text-slate-500 mb-1">
+                    <span>Home</span>
+                    <span className="mx-2">/</span>
+                    <span>e-Invoicing</span>
+                    {breadcrumbs.map((crumb, index) => (
+                        <React.Fragment key={index}>
+                            <span className="mx-2">/</span>
+                            <span className={index === breadcrumbs.length - 1 ? 'font-medium text-slate-700 dark:text-slate-300' : ''}>
+                                {crumb.label}
+                            </span>
+                        </React.Fragment>
+                    ))}
+                </div>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{title}</h1>
+                <p className="text-sm text-slate-500 mt-1">Manage and track all your invoices in one place</p>
             </div>
 
-            <button
-                onClick={onCreateClick}
-                className="w-full sm:w-auto px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-bold shadow-lg shadow-teal-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
-            >
-                <PlusIcon className="w-5 h-5" />
-                <span>Create Invoice</span>
-            </button>
+            {actionButton && (
+                <button
+                    onClick={actionButton.onClick}
+                    className="inline-flex items-center justify-center px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-lg transition-all shadow-sm hover:shadow active:scale-95"
+                >
+                    {actionButton.icon}
+                    {actionButton.label}
+                </button>
+            )}
         </div>
     );
 };

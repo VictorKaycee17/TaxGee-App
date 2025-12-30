@@ -19,6 +19,8 @@ const TaxCalculator = () => {
 
     // Individual tax states
     const [grossIncome, setGrossIncome] = useState(0);
+    const [incomePeriod, setIncomePeriod] = useState('monthly'); // Added: 'monthly' | 'annual'
+
     const [deductions, setDeductions] = useState({
         pension: 0,
         nhf: 0,
@@ -28,45 +30,66 @@ const TaxCalculator = () => {
 
     // Company tax states
     const [annualTurnover, setAnnualTurnover] = useState(0);
+    const [turnoverPeriod, setTurnoverPeriod] = useState('monthly'); // Added: 'monthly' | 'annual'
 
     // Results
     const [results, setResults] = useState(null);
     const [showResults, setShowResults] = useState(false);
 
+    // Helper: Toggle Period and Auto-convert
+    const handlePeriodToggle = (currentPeriod, setPeriod, currentValue, setValue) => {
+        const newPeriod = currentPeriod === 'monthly' ? 'annual' : 'monthly';
+        setPeriod(newPeriod);
+
+        if (currentValue > 0) {
+            // Convert value smartly
+            const newValue = newPeriod === 'annual'
+                ? currentValue * 12
+                : currentValue / 12;
+
+            // Round to 2 decimals to avoid weird floats
+            setValue(Math.round(newValue * 100) / 100);
+        }
+    };
+
     const handleCalculate = (e) => {
         e.preventDefault();
 
+        // Convert to Annual for Calculation Engine
+        const annualizedIncome = incomePeriod === 'monthly' ? grossIncome * 12 : grossIncome;
+        const annualizedTurnover = turnoverPeriod === 'monthly' ? annualTurnover * 12 : annualTurnover;
+
         // Validate inputs based on user type
-        if (userType === 'individual' && grossIncome <= 0) {
+        if (userType === 'individual' && annualizedIncome <= 0) {
             alert('Please enter a valid gross income');
             trackEvent('tax_calculation_error', { userType, error: 'invalid_gross_income' });
             return;
         }
 
-        if (userType === 'company' && annualTurnover <= 0) {
-            alert('Please enter a valid annual turnover');
+        if (userType === 'company' && annualizedTurnover <= 0) {
+            alert('Please enter a valid turnover');
             trackEvent('tax_calculation_error', { userType, error: 'invalid_turnover' });
             return;
         }
 
-        // Calculate tax based on user type
+        // Calculate tax based on user type (Always use ANNUALIZED figures)
         const taxResults = calculateTax({
             userType,
             // Individual fields
-            grossIncome,
+            grossIncome: annualizedIncome,
             pension: deductions.pension,
             nhf: deductions.nhf,
             nhis: deductions.nhis,
             annualRent,
             // Company fields
-            annualTurnover,
+            annualTurnover: annualizedTurnover,
         });
 
         // Track successful tax calculation
         trackEvent('tax_calculated', {
             userType,
-            grossIncome: userType === 'individual' ? grossIncome : null,
-            turnover: userType === 'company' ? annualTurnover : null,
+            grossIncome: userType === 'individual' ? annualizedIncome : null,
+            turnover: userType === 'company' ? annualizedTurnover : null,
             totalTax: taxResults.tax?.total || taxResults.totalTax || 0,
             hasDeductions: userType === 'individual' ? (deductions.pension > 0 || deductions.nhf > 0 || deductions.nhis > 0) : null,
             hasRentRelief: userType === 'individual' ? annualRent > 0 : null
@@ -90,6 +113,10 @@ const TaxCalculator = () => {
         setDeductions({ pension: 0, nhf: 0, nhis: 0 });
         setAnnualRent(0);
         setAnnualTurnover(0);
+        // Reset periods to default
+        setIncomePeriod('monthly');
+        setTurnoverPeriod('monthly');
+
         setResults(null);
         setShowResults(false);
     };
@@ -97,17 +124,32 @@ const TaxCalculator = () => {
     const handleQuickFill = () => {
         trackEvent('quick_fill_used', { userType });
         if (userType === 'individual') {
-            // Sample individual data
-            setGrossIncome(5000000);
+            // Base Annual Figures
+            const baseAnnualIncome = 6000000; // 500k monthly
+
+            // Adjust for current period
+            if (incomePeriod === 'monthly') {
+                setGrossIncome(baseAnnualIncome / 12);
+            } else {
+                setGrossIncome(baseAnnualIncome);
+            }
+
             setDeductions({
-                pension: 400000,  // 8% of gross
-                nhf: 12500,       // 2.5% of basic
-                nhis: 50000,
+                pension: 480000,  // 8% of gross
+                nhf: 15000,       // Sample
+                nhis: 60000,
             });
             setAnnualRent(2000000);
         } else {
-            // Sample company data
-            setAnnualTurnover(100000000); // 100M - Large company
+            // Base Annual Turnover
+            const baseAnnualTurnover = 120000000; // 10M monthly
+
+            // Adjust for current period
+            if (turnoverPeriod === 'monthly') {
+                setAnnualTurnover(baseAnnualTurnover / 12);
+            } else {
+                setAnnualTurnover(baseAnnualTurnover);
+            }
         }
     };
 
@@ -171,6 +213,8 @@ const TaxCalculator = () => {
                             <IncomeInput
                                 value={grossIncome}
                                 onChange={setGrossIncome}
+                                period={incomePeriod}
+                                onPeriodToggle={() => handlePeriodToggle(incomePeriod, setIncomePeriod, grossIncome, setGrossIncome)}
                             />
 
                             <DeductionsForm
@@ -192,6 +236,8 @@ const TaxCalculator = () => {
                         <CompanyTaxInput
                             turnover={annualTurnover}
                             onChange={setAnnualTurnover}
+                            period={turnoverPeriod}
+                            onPeriodToggle={() => handlePeriodToggle(turnoverPeriod, setTurnoverPeriod, annualTurnover, setAnnualTurnover)}
                         />
                     )}
 

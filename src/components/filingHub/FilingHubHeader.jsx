@@ -1,58 +1,103 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-    DocumentTextIcon,
-    PlusCircleIcon,
+    PlusIcon,
     ArrowPathIcon,
-    Cog6ToothIcon
+    Cog6ToothIcon,
+    ListBulletIcon,
+    CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
-const FilingHubHeader = ({ onViewAll, onCreate, onSync, onSettings }) => {
+const FilingHubHeader = ({
+    onViewAllReturns,
+    onCreateReturn,
+    onSyncData,
+    onSettings
+}) => {
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const handleSync = async () => {
+        if (onSyncData) {
+            setIsSyncing(true);
+            try {
+                await onSyncData();
+            } finally {
+                setTimeout(() => setIsSyncing(false), 2000); // Simulate min delay
+            }
+        }
+    };
+
     return (
-        <div className="bg-gradient-to-b from-teal-50 to-white border-b border-slate-200 px-6 py-6 mb-6">
+        <div className="bg-gradient-to-b from-indigo-50 to-white dark:from-slate-900 dark:to-slate-950 border-b border-slate-200 dark:border-slate-800 px-6 py-6 mb-6">
             <div className="max-w-[1400px] mx-auto">
                 {/* Breadcrumb */}
                 <div className="text-sm text-slate-500 mb-2 font-medium">
                     Home &gt; Compliance &gt; Filing Hub
                 </div>
 
-                {/* Title & Subtitle */}
-                <div className="mb-5">
-                    <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                        Filing Hub
-                    </h1>
-                    <p className="text-sm text-slate-600">
-                        Manage and submit tax returns directly to FIRS.
-                    </p>
+                <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 mb-6">
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                            Filing Hub & Compliance
+                        </h1>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl">
+                            Manage your tax obligations, calculate liabilities, and file returns directly to FIRS and other authorities.
+                        </p>
+                    </div>
+
+                    {/* Quick Stats Widget placed in header for visibility */}
+                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 flex gap-6 shadow-sm">
+                        <div>
+                            <p className="text-xs text-slate-500 uppercase font-bold">Returns (YTD)</p>
+                            <p className="text-lg font-bold text-slate-900 dark:text-white">4 Filed</p>
+                        </div>
+                        <div className="w-px bg-slate-200 dark:bg-slate-700 h-10"></div>
+                        <div>
+                            <p className="text-xs text-slate-500 uppercase font-bold">Next Deadline</p>
+                            <p className="text-lg font-bold text-amber-600">20 Jan</p>
+                        </div>
+                        <div className="w-px bg-slate-200 dark:bg-slate-700 h-10"></div>
+                        <div>
+                            <p className="text-xs text-slate-500 uppercase font-bold">Pending Due</p>
+                            <p className="text-lg font-bold text-rose-600">₦1.2M</p>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Action Buttons */}
+                {/* Actions Row */}
                 <div className="flex flex-wrap items-center gap-3">
                     <button
-                        onClick={onViewAll}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-all"
+                        onClick={onCreateReturn}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
                     >
-                        <DocumentTextIcon className="w-5 h-5" />
-                        View All Returns
-                    </button>
-                    <button
-                        onClick={onCreate}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-all shadow-lg shadow-teal-500/20"
-                    >
-                        <PlusCircleIcon className="w-5 h-5" />
+                        <PlusIcon className="w-5 h-5" />
                         Create Return
                     </button>
+
                     <button
-                        onClick={onSync}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-all"
+                        onClick={onViewAllReturns}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
                     >
-                        <ArrowPathIcon className="w-5 h-5" />
-                        Sync Data
+                        <ListBulletIcon className="w-5 h-5 text-slate-500" />
+                        View All Returns
                     </button>
+
+                    <div className="flex-1"></div>
+
+                    <button
+                        onClick={handleSync}
+                        disabled={isSyncing}
+                        className="flex items-center gap-2 px-4 py-2.5 text-slate-600 dark:text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-all font-medium disabled:opacity-70"
+                    >
+                        <ArrowPathIcon className={`w-5 h-5 ${isSyncing ? 'animate-spin text-indigo-600' : ''}`} />
+                        <span>{isSyncing ? 'Syncing...' : 'Sync Data'}</span>
+                    </button>
+
                     <button
                         onClick={onSettings}
-                        className="p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+                        className="p-2.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
+                        title="Filing Settings"
                     >
-                        <Cog6ToothIcon className="w-5 h-5" />
+                        <Cog6ToothIcon className="w-6 h-6" />
                     </button>
                 </div>
             </div>
