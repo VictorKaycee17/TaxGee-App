@@ -14,9 +14,9 @@ import {
     Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 
-const Sidebar = ({ activePage, onNavigate, isOpen, onClose }) => {
-    // Hierarchical Menu Structure
-    const menuStructure = [
+const Sidebar = ({ activePage, onNavigate, isOpen, onClose, mode = 'company' }) => {
+    // Company Menu Structure (Existing)
+    const companyMenu = [
         {
             type: 'link',
             id: 'dashboard',
@@ -63,6 +63,40 @@ const Sidebar = ({ activePage, onNavigate, isOpen, onClose }) => {
             icon: <Cog6ToothIcon className="w-5 h-5" />
         }
     ];
+
+    // Individual Menu Structure (New)
+    const individualMenu = [
+        {
+            type: 'link',
+            id: 'dashboard',
+            label: 'Dashboard', // Maps to Income Tracker Part A primarily or Overview
+            icon: <HomeIcon className="w-5 h-5" />
+        },
+        {
+            type: 'section',
+            label: 'PERSONAL FINANCE',
+            items: [
+                { id: 'income', label: 'Income Tracker', icon: <BanknotesIcon className="w-5 h-5" /> },
+                { id: 'expenses', label: 'Expenses & Reliefs', icon: <ReceiptRefundIcon className="w-5 h-5" /> },
+            ]
+        },
+        {
+            type: 'section',
+            label: 'TAX MANAGEMENT',
+            items: [
+                { id: 'taxPosition', label: 'Tax Position', icon: <ReceiptPercentIcon className="w-5 h-5" /> },
+                { id: 'filing', label: 'Filing & Returns', icon: <DocumentCheckIcon className="w-5 h-5" /> },
+            ]
+        },
+        {
+            type: 'link',
+            id: 'settings',
+            label: 'Settings',
+            icon: <Cog6ToothIcon className="w-5 h-5" />
+        }
+    ];
+
+    const menuStructure = mode === 'individual' ? individualMenu : companyMenu;
 
     const MenuLink = ({ item }) => (
         <button

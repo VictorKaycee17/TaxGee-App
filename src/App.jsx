@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import Terms from './components/Terms';
 import Privacy from './components/Privacy';
 import ProToggle from './components/ProToggle';
+import ProVersionSelector from './components/ProVersionSelector';
 import AuthWidget from './components/AuthWidget';
 import AppLayout from './layouts/AppLayout';
 import Dashboard from './pages/Dashboard';
@@ -24,6 +25,9 @@ import POSSales from './pages/POSSales';
 import VendorBills from './pages/VendorBills';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
+import IndividualDashboardV2 from './pages/individual/IndividualDashboardV2';
+import FileReturnWizard from './pages/individual/filing/FileReturnWizard';
+import IndividualLayout from './layouts/IndividualLayout'; // Import New Mobile Layout
 
 import logo from './assets/logo.png';
 
@@ -42,6 +46,11 @@ function App() {
 
     const [isProLoggedIn, setIsProLoggedIn] = useState(false);
 
+    // New: Pro Mode Selection ('individual' | 'company' | null)
+    const [proMode, setProMode] = useState(() => {
+        return localStorage.getItem('taxpadi_proMode') || null;
+    });
+
     const [activeProPage, setActiveProPage] = useState(() => {
         return localStorage.getItem('taxpadi_activeProPage') || 'dashboard';
     });
@@ -49,7 +58,19 @@ function App() {
     // Persist State Changes
     React.useEffect(() => {
         localStorage.setItem('taxpadi_isPro', JSON.stringify(isPro));
+        // RESET Logic: If user switches back to Free, clear their Pro selection (so they can choose again)
+        if (!isPro) {
+            setProMode(null);
+        }
     }, [isPro]);
+
+    React.useEffect(() => {
+        if (proMode) {
+            localStorage.setItem('taxpadi_proMode', proMode);
+        } else {
+            localStorage.removeItem('taxpadi_proMode');
+        }
+    }, [proMode]);
 
     React.useEffect(() => {
         localStorage.setItem('taxpadi_activeProPage', activeProPage);
@@ -71,6 +92,12 @@ function App() {
         setTheme(prev => prev === 'light' ? 'dark' : 'light');
     };
 
+    // Handle Pro Mode Reset (for testing or switching)
+    const handleSwitchProMode = () => {
+        setProMode(null);
+        setActiveProPage('dashboard');
+    };
+
     if (currentView === 'terms') {
         return <Terms onBack={() => setCurrentView('home')} theme={theme} />;
     }
@@ -86,23 +113,44 @@ function App() {
 
             {isPro ? (
                 <div className="animate-fade-in">
-                    {/* Full Screen Pro Layout */}
-                    <AppLayout activePage={activeProPage} onNavigate={setActiveProPage}>
-                        {activeProPage === 'dashboard' && <Dashboard onNavigate={setActiveProPage} />}
-                        {activeProPage === 'invoicing' && <Invoicing />}
-                        {activeProPage === 'salestax' && <SalesTax />}
-                        {activeProPage === 'policy' && <PolicyEngine />}
-                        {activeProPage === 'calendar' && <Calendar />}
-                        {activeProPage === 'payroll' && <Payroll />}
-                        {activeProPage === 'audit' && <Audit />}
-                        {activeProPage === 'review' && <DocumentReview />}
-                        {activeProPage === 'receipts' && <Receipts />}
-                        {activeProPage === 'filingHub' && <FilingHub />}
-                        {activeProPage === 'posSales' && <POSSales />}
-                        {activeProPage === 'vendorBills' && <VendorBills />}
-                        {activeProPage === 'settings' && <Settings />}
-                        {activeProPage === 'profile' && <Profile onGoToSettings={() => setActiveProPage('settings')} />}
-                    </AppLayout>
+                    {!proMode ? (
+                        <ProVersionSelector onSelect={setProMode} />
+                    ) : proMode === 'individual' ? (
+                        /* Individual Pro Layout (Mobile First v2) */
+                        <IndividualLayout
+                            activePage={activeProPage}
+                            onNavigate={setActiveProPage}
+                        >
+                            {/* We will handle routing here later, for now just Dashboard */}
+                            {activeProPage === 'dashboard' && <IndividualDashboardV2 />}
+                            {/* Placeholders for other tabs */}
+                            {activeProPage === 'filing' && <FileReturnWizard onBack={() => setActiveProPage('dashboard')} />}
+                            {activeProPage === 'payment' && <div className="p-6">Payment Page (Coming Soon)</div>}
+                            {activeProPage === 'settings' && <div className="p-6">Settings Page (Coming Soon)</div>}
+                        </IndividualLayout>
+                    ) : (
+                        /* Company Pro Layout */
+                        <AppLayout
+                            activePage={activeProPage}
+                            onNavigate={setActiveProPage}
+                            mode="company"
+                        >
+                            {activeProPage === 'dashboard' && <Dashboard onNavigate={setActiveProPage} />}
+                            {activeProPage === 'invoicing' && <Invoicing />}
+                            {activeProPage === 'salestax' && <SalesTax />}
+                            {activeProPage === 'policy' && <PolicyEngine />}
+                            {activeProPage === 'calendar' && <Calendar />}
+                            {activeProPage === 'payroll' && <Payroll />}
+                            {activeProPage === 'audit' && <Audit />}
+                            {activeProPage === 'review' && <DocumentReview />}
+                            {activeProPage === 'receipts' && <Receipts />}
+                            {activeProPage === 'filingHub' && <FilingHub />}
+                            {activeProPage === 'posSales' && <POSSales />}
+                            {activeProPage === 'vendorBills' && <VendorBills />}
+                            {activeProPage === 'settings' && <Settings />}
+                            {activeProPage === 'profile' && <Profile onGoToSettings={() => setActiveProPage('settings')} />}
+                        </AppLayout>
+                    )}
                 </div>
             ) : (
                 <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">

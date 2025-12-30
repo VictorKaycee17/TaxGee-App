@@ -2,7 +2,7 @@ import React from 'react';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 
-const AppLayout = ({ children, activePage, onNavigate }) => {
+const AppLayout = ({ children, activePage, onNavigate, mode }) => {
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -19,6 +19,7 @@ const AppLayout = ({ children, activePage, onNavigate }) => {
                 }}
                 isOpen={isSidebarOpen}
                 onClose={closeSidebar}
+                mode={mode} // Pass mode (default handled in component)
             />
 
             {/* Mobile Overlay */}
